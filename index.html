@@ -537,6 +537,11 @@
   .sample-link{background:none; border:none; font-family:inherit; font-size:11.5px; color:var(--c-west); cursor:pointer; padding:0; margin:-6px 0 12px 2px; text-align:left; display:block}
   .sample-link:hover{text-decoration:underline}
   .pane.dropping{outline:2px dashed var(--brand); outline-offset:-8px; border-radius:18px}
+  .shift-cue{font-size:10.5px; color:var(--s-warn); font-weight:600}
+  .adjust-banner{border:1px solid color-mix(in oklab, var(--s-warn) 35%, transparent); background:var(--s-warn-tint); border-radius:12px; padding:11px 13px; margin:14px 0 4px}
+  .ab-h{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--s-warn); margin-bottom:6px}
+  .ab-row{font-size:12.5px; color:var(--ink); padding:2px 0}
+  .ab-row span{color:var(--ink-soft); font-size:11.5px}
   @media (max-width:600px){ .sheet{position:fixed} }
 </style>
 </head>
@@ -1039,7 +1044,7 @@ function doseCard(s){
       <span class="pill">${icon(s.id)||s.pill}</span>
       <div class="dose-main">
         <div class="dose-name">${s.name}</div>
-        <div class="dose-cue"><span class="cue">${CUE[s.food]||s.food}</span></div>
+        <div class="dose-cue"><span class="cue">${CUE[s.food]||s.food}</span>${shiftInfo()[s.id]?`<span class="shift-cue">→ re-timed · was ${fmtTime(shiftInfo()[s.id].from)}</span>`:""}</div>
       </div>
       <span class="chev">▸</span>
       <button class="check" aria-label="Mark ${s.name} taken"></button>
@@ -1055,10 +1060,10 @@ function doseCard(s){
     if(e.target.closest(".check")) return;
     card.classList.toggle("open");
   });
+  if(takenMap()[s.id]!=null) card.classList.add("taken");
   card.querySelector(".check").addEventListener("click", e=>{
     e.stopPropagation();
-    card.classList.toggle("taken");
-    updateProgress();
+    toggleTaken(s.id);
   });
   const ti = card.querySelector(".te-input");
   if(ti){
@@ -1089,27 +1094,36 @@ function updateProgress(){
   });
 }
 
+function bulkTake(ids){
+  STORE.taken = STORE.taken||{}; const day = STORE.taken[todayKey()] = STORE.taken[todayKey()]||{};
+  const allTaken = ids.length>0 && ids.every(id=>day[id]!=null);
+  ids.forEach(id=>{ if(allTaken) delete day[id]; else if(day[id]==null) day[id]=nowMin(); });
+  runReflow(); renderAll();
+}
 function markAll(){
-  const cards = [...document.querySelectorAll('#pane-today .dose')];
-  const allTaken = cards.length>0 && cards.every(c=>c.classList.contains('taken'));
-  cards.forEach(c=>c.classList.toggle('taken', !allTaken));
-  updateProgress();
+  bulkTake(SUPP.filter(s=>!RESTING_TODAY.has(s.id)).map(s=>s.id));
 }
 function roundAll(key){
-  const cards = [...document.querySelectorAll('#body-'+key+' .dose')];
-  const allTaken = cards.length>0 && cards.every(c=>c.classList.contains('taken'));
-  cards.forEach(c=>c.classList.toggle('taken', !allTaken));
-  updateProgress();
+  const t = +key.slice(1);
+  bulkTake(SUPP.filter(s=>!RESTING_TODAY.has(s.id) && effTime(s)===t).map(s=>s.id));
 }
 
 function dayRounds(){
   const due = SUPP.filter(s=>!RESTING_TODAY.has(s.id));
   const byTime = {};
-  due.forEach(s=>{ (byTime[s.time] = byTime[s.time]||[]).push(s); });
+  due.forEach(s=>{ const t=effTime(s); (byTime[t] = byTime[t]||[]).push(s); });
   return Object.keys(byTime).map(Number).sort((a,b)=>a-b).map(t=>({time:t, key:"t"+t, items:byTime[t]}));
 }
 function renderToday(){
   const host = $("#today-slots"); host.innerHTML="";
+  const info = shiftInfo(); const moves = Object.keys(info);
+  if(moves.length){
+    const b = el("div","adjust-banner");
+    b.innerHTML = `<div class="ab-h">Re-timed around what you actually took</div>` +
+      moves.map(id=>{ const it=SUPP.find(x=>x.id===id); const m=info[id];
+        return `<div class="ab-row"><b>${it?it.name:id}</b> → ${fmtTime(m.to)} <span>· ${m.why||("was "+fmtTime(m.from))}</span></div>`; }).join("");
+    host.appendChild(b);
+  }
   dayRounds().forEach(round=>{
     const wrap = el("div","slot"); wrap.id="slot-"+round.key; wrap.dataset.round=round.key;
     const head = el("div","slot-head");
@@ -1817,6 +1831,67 @@ function setItemTime(id, minutes){
   saveStore(STORE); renderAll();
   toast("Moved to "+fmtTime(minutes));
 }
+function todayKey(){ return new Date().toDateString(); }
+function nowMin(){ if(window.__testNow!=null) return window.__testNow; const d=new Date(); return d.getHours()*60+d.getMinutes(); }
+function takenMap(){ return (STORE.taken && STORE.taken[todayKey()]) || {}; }
+function shiftMap(){ return (STORE.shifts && STORE.shifts[todayKey()]) || {}; }
+function shiftInfo(){ return (STORE.shiftInfo && STORE.shiftInfo[todayKey()]) || {}; }
+function effTime(x){ const sh=shiftMap(); return sh[x.id]!=null ? sh[x.id] : x.time; }
+
+/* ---- live constraint rules ---- */
+const BINDER_RE = /binder|charcoal|g\.?i\.?\s?detox|chitosan|zeolite|bentonite/i;
+const MINERAL_RE = /\b(iron|ferrous|calcium|zinc|magnesium)\b/i;
+function isBinderItem(x){ return BINDER_RE.test(x.name); }
+function isRxItem(x){ return x.cat==="Prescriptions" || /^Rx/.test(x.brand||"") || RX_RE.test(x.name); }
+function isMineralItem(x){ return MINERAL_RE.test(x.name); }
+function mineralOf(x){ const m=x.name.match(MINERAL_RE); return m ? m[1].toLowerCase().replace("ferrous","iron") : null; }
+
+/* Recompute today's shifts purely from what has actually been taken. Idempotent. */
+function runReflow(){
+  const tk = takenMap();
+  const due = SUPP.filter(x=>!RESTING_TODAY.has(x.id));
+  const takenItems = due.filter(x=>tk[x.id]!=null).map(x=>({x, at:tk[x.id]}));
+  const shifts={}, info={};
+  for(const p of due){
+    if(tk[p.id]!=null) continue;          // already taken — nothing to move
+    let t = p.time, why = null;
+    for(const {x:q, at} of takenItems){
+      // sequence: binders wait 30 min after the liquids round that precedes them
+      if(isBinderItem(p) && !isBinderItem(q) && !isRxItem(q) && q.time < p.time && p.time - q.time <= 120){
+        const need = at + 30;
+        if(need > t){ t = need; why = "30 min after "+q.name+" (taken "+fmtTime(at)+")"; }
+      }
+      // spacing: binder <-> prescription, 2h either side
+      if((isBinderItem(p) && isRxItem(q)) || (isRxItem(p) && isBinderItem(q))){
+        const need = at + 120;
+        if(t < need && t >= at - 120){ t = need; why = "2h clear of "+q.name+" (taken "+fmtTime(at)+")"; }
+      }
+      // spacing: competing minerals, 2h apart (different minerals only)
+      if(isMineralItem(p) && isMineralItem(q) && mineralOf(p)!==mineralOf(q) && ["iron","calcium","zinc","magnesium"].includes(mineralOf(p))){
+        if(("iron"===mineralOf(p)||"iron"===mineralOf(q))){
+          const need = at + 120;
+          if(t < need && t >= at - 120){ t = need; why = "2h from "+q.name+" (taken "+fmtTime(at)+")"; }
+        }
+      }
+    }
+    if(t !== p.time){ shifts[p.id]=t; info[p.id]={from:p.time, to:t, why}; }
+  }
+  STORE.shifts = STORE.shifts||{}; STORE.shifts[todayKey()] = shifts;
+  STORE.shiftInfo = STORE.shiftInfo||{}; STORE.shiftInfo[todayKey()] = info;
+  saveStore(STORE);
+}
+function toggleTaken(id){
+  STORE.taken = STORE.taken||{}; const day = STORE.taken[todayKey()] = STORE.taken[todayKey()]||{};
+  const was = day[id]!=null;
+  if(was) delete day[id]; else day[id] = nowMin();
+  runReflow();
+  renderAll();
+  const moves = Object.values(shiftInfo());
+  if(!was && moves.length) toast(moves.length+" item"+(moves.length>1?"s":"")+" re-timed around what you took");
+  return !was;
+}
+function setItemTimeShiftSafe(){}
+
 function renderAll(){ rebuildMerged(); renderToday(); renderWeek(); renderStack(); renderLabs(); }
 
 /* ---- init ---- */
