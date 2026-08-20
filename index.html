@@ -542,6 +542,21 @@
   .ab-h{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--s-warn); margin-bottom:6px}
   .ab-row{font-size:12.5px; color:var(--ink); padding:2px 0}
   .ab-row span{color:var(--ink-soft); font-size:11.5px}
+  .empty-state{text-align:center; padding:44px 22px; border:1px dashed var(--line); border-radius:16px; margin-top:16px}
+  .empty-state .es-mark svg{width:40px;height:40px;color:var(--c-ayur);margin:0 auto 6px}
+  .empty-state h3{font-family:var(--serif); font-size:20px; font-weight:600; margin:6px 0 8px}
+  .empty-state p{font-size:13px; color:var(--ink-soft); line-height:1.55; max-width:30ch; margin:0 auto 16px}
+  .empty-state .btn-primary{width:auto; padding:12px 22px}
+  .proto-row{display:flex; align-items:center; gap:10px; padding:10px 4px; cursor:pointer; border-bottom:1px solid var(--line)}
+  .proto-row:last-child{border-bottom:none}
+  .proto-dot{width:10px;height:10px;border-radius:50%;border:1.6px solid var(--line);flex:0 0 auto}
+  .proto-row.active .proto-dot{background:var(--brand); border-color:var(--brand)}
+  .proto-main{flex:1 1 auto; min-width:0}
+  .proto-main b{font-size:13.5px; display:block}
+  .proto-main span{font-size:11px; color:var(--ink-faint)}
+  .proto-row.active .proto-main b{color:var(--brand-deep)}
+  .proto-del{border:none; background:none; color:var(--ink-faint); cursor:pointer; font-size:13px; padding:4px 6px}
+  .proto-del:hover{color:var(--s-alert)}
   @media (max-width:600px){ .sheet{position:fixed} }
 </style>
 </head>
@@ -597,7 +612,7 @@
             <!-- TODAY -->
             <section class="pane active" id="pane-today">
               <div class="pane-head">
-                <div class="kicker">Your protocol · Tue, Jul 15</div>
+                <div class="kicker" id="today-kicker">Your protocol</div>
                 <div class="today-progress" id="today-progress">
                   <div class="pbar"><i></i></div>
                   <div class="tp-row"><span class="ptext">0 of 10 taken</span><button class="mark-all-btn" id="mark-all">Take all</button></div>
@@ -621,7 +636,7 @@
             <!-- STACK -->
             <section class="pane" id="pane-stack">
               <div class="pane-head">
-                <div class="kicker">12 active · 1 flagged</div>
+                <div class="kicker" id="stack-kicker">Your items</div>
                 <h2>My Stack</h2>
                 <p>Everything you take — with cumulative-dose meters that add a nutrient up across bottles.</p>
               </div>
@@ -632,7 +647,7 @@
             <!-- LABS -->
             <section class="pane" id="pane-labs">
               <div class="pane-head">
-                <div class="kicker">Quest · drawn Jun 28</div>
+                <div class="kicker" id="labs-kicker">Your bloodwork</div>
                 <h2>Labs &amp; Trends</h2>
                 <p>Tap a marker to light up the supplements it's linked to — the stack&nbsp;↔&nbsp;labs loop.</p>
               </div>
@@ -727,6 +742,9 @@
                 <button class="btn-ghost" id="key-clear">Remove key</button>
               </div>
               <div class="sheet-div"></div>
+              <div class="sheet-h" style="font-size:16px">Protocols</div>
+              <div id="protocol-list"></div>
+              <div class="sheet-div"></div>
               <div class="sheet-h" style="font-size:16px">Reminders</div>
               <div class="io-hint" style="margin:0 0 10px">Every round in your plan can ping your phone at its exact time — however many rounds your protocol has.</div>
               <div class="io-2col">
@@ -735,7 +753,7 @@
               </div>
               <div class="io-hint" id="alerts-status" style="margin-top:8px">In the iPhone app, alerts fire in the background. On the web, they fire while Dosely is open — or add the calendar file to Apple/Google Calendar for system-level alerts anywhere.</div>
               <div class="sheet-div"></div>
-              <button class="btn-ghost danger" id="data-clear">Clear imports &amp; restore sample protocol</button>
+              <button class="btn-ghost danger" id="data-clear">Delete all data on this device</button>
               <button class="btn-ghost" id="sheet-close">Close</button>
             </div>
           </div>
@@ -785,104 +803,44 @@
 
 <script>
 /* ============================ DATA (from verified research) ============================ */
-const SUPP_BASE = [
-  {id:"ferrous-bisglycinate", name:"Iron (Ferrous Bisglycinate)", brand:"Thorne · 25 mg elemental", pill:"🩸", cat:"Minerals", slot:"morning", food:"empty stomach", carrier:"warm water + vitamin C", dose:"25 mg elemental", space:"2h from calcium, zinc & coffee", link:["ferritin","hemoglobin"], recon:"Ferritin low — discuss",
-    why:[
-      {t:"west",e:"established",x:"Empty stomach with vitamin C boosts absorption; keep 2h from calcium, zinc and coffee, which blunt it."},
-      {t:"west",e:"emerging",x:"Alternate-day dosing can raise total absorption — one dose lifts hepcidin for ~24h, blocking the next."},
-      {t:"ayur",e:"traditional",x:"Abhakta (empty stomach); carrier is warm water, never tea. Supports rakta dhatu (blood)."}
-    ]},
-  {id:"vit-c", name:"Vitamin C", brand:"Pure Encapsulations · 500 mg", pill:"🍊", cat:"Vitamins", slot:"morning", food:"empty stomach", carrier:"with the iron dose", dose:"500 mg", link:["ferritin"],
-    why:[{t:"west",e:"established",x:"Paired with iron on an empty stomach to lift non-heme iron absorption (~65%)."}]},
-  {id:"methyl-b12", name:"Methyl-B12 + Methylfolate", brand:"Jarrow · sublingual", pill:"🧬", cat:"Vitamins", slot:"morning", food:"either", carrier:"sublingual", dose:"1000 mcg B12 / 400 mcg 5-MTHF", link:["homocysteine","b12"],
-    why:[
-      {t:"west",e:"established",x:"Methylated B12 & folate are the forms usually chosen when homocysteine runs high — a pattern to review with your practitioner."},
-      {t:"tcm",e:"traditional",x:"Placed in the Spleen–Stomach morning window (7–11am) with the other B vitamins."}
-    ]},
-  {id:"b-complex", name:"B-Complex", brand:"Garden of Life · P-5-P 25 mg", pill:"🌾", cat:"Vitamins", slot:"morning", food:"with food", carrier:"warm water, with breakfast", dose:"1 capsule", link:["homocysteine","b6"], recon:"Adds 25 mg B6",
-    why:[
-      {t:"west",e:"established",x:"Morning with food — B's can feel activating and irritate an empty stomach late in the day."},
-      {t:"west",e:"established",x:"Contributes 25 mg B6 — tracked against your cumulative daily total (see Stack)."}
-    ]},
-  {id:"adrenal-blend", name:"Adrenal Support Complex", brand:"Proprietary blend · 700 mg", pill:"⚡", cat:"Herbs & adaptogens", slot:"morning", food:"with food", carrier:"warm water", dose:"1 capsule", flag:"Proprietary blend",
-    why:[
-      {t:"west",e:"traditional",x:"Stimulating adaptogens (rhodiola, ginseng) go in the morning to protect sleep. Licorice can raise blood pressure with sustained use."},
-      {t:"flag",e:"quality flag",x:"Proprietary blend — individual herb amounts are hidden, so dose, overlap with your other adaptogens, and interactions can't be verified. Worth discussing a transparently-labeled alternative."},
-      {t:"tcm",e:"traditional",x:"Warming qi tonics — classically the morning Spleen–Stomach window."}
-    ]},
-  {id:"probiotic", name:"Multi-Strain Probiotic", brand:"Seed DS-01 · 53.6B AFU", pill:"🦠", cat:"Probiotic", slot:"morning", food:"with food", carrier:"warm (not hot) water", dose:"2 capsules",
-    why:[
-      {t:"west",e:"established",x:"With or just before a meal buffers stomach acid so more organisms survive. Consistency day-to-day matters more than exact time."},
-      {t:"ayur",e:"traditional",x:"Supports agni (digestive fire); pragbhakta — before or with a meal."}
-    ]},
-  {id:"vit-d3", name:"Vitamin D3 + K2", brand:"Thorne · 2000 IU / 30 mcg", pill:"☀️", cat:"Vitamins", slot:"midday", food:"with fatty meal", carrier:"within a fatty meal (ghee/oil)", dose:"2 drops", link:["vit-d-25oh"], recon:"25(OH)D still low",
-    why:[
-      {t:"west",e:"established",x:"Fat-soluble — absorbs ~32% better with your fattiest meal than with fat-free coffee. If levels stay low, moving it to the largest meal is the usual first step."},
-      {t:"ayur",e:"traditional",x:"Anupana: taken within a fat-containing meal, which carries fat-soluble vitamins in. Adhobhakta."}
-    ]},
-  {id:"fish-oil", name:"Omega-3 Fish Oil", brand:"Nordic Naturals · 650 EPA/450 DHA", pill:"🐟", cat:"Fatty acids", slot:"midday", food:"with fatty meal", carrier:"within a meal", dose:"2 softgels",
-    why:[
-      {t:"west",e:"established",x:"It's a fat — food aids uptake and cuts the 'fish-burp' reflux that makes people quit. Split across two meals if reflux persists."},
-      {t:"ayur",e:"traditional",x:"Unctuous, Vata-pacifying quality; taken with food (madhyabhakta)."}
-    ]},
-  {id:"multivitamin", name:"Daily Multivitamin", brand:"Centrum Adult", pill:"🌈", cat:"Multivitamin", slot:"midday", food:"with food", carrier:"warm water, with food", dose:"1 tablet", link:["b6"], space:"keep big iron doses 2h away",
-    why:[
-      {t:"west",e:"established",x:"Small balanced minerals are fine together, but keep large separate iron doses ~2h away."},
-      {t:"west",e:"established",x:"Adds to your B6, preformed vitamin A and zinc totals — tracked across every product."}
-    ]},
-  {id:"zinc", name:"Zinc Picolinate", brand:"Thorne · 15 mg", pill:"🛡️", cat:"Minerals", slot:"evening", food:"with food", carrier:"with an evening meal", dose:"15 mg", space:"2h from iron & calcium",
-    why:[
-      {t:"west",e:"established",x:"With food to avoid nausea; 2h from iron. Chronic higher zinc quietly depletes copper — watch the balance over time."},
-    ]},
-  {id:"cal-mag", name:"Magnesium Glycinate", brand:"Doctor's Best · 200 mg", pill:"🌙", cat:"Minerals", slot:"night", food:"either", carrier:"warm water", dose:"2 tablets · 200 mg", space:"2h from iron",
-    why:[
-      {t:"west",e:"established",x:"Glycinate is gentle and well-absorbed — a common evening choice. Supplemental Mg has a 350 mg/day ceiling (loose stools, not toxicity)."},
-      {t:"ayur",e:"traditional",x:"Nishi — taken at night, before bed. Grounding, Vata-pacifying."},
-      {t:"tcm",e:"traditional",x:"Grouped with Shen-calming supports for the pre-sleep window."}
-    ]},
-  {id:"ashwagandha", name:"Ashwagandha", brand:"Jarrow KSM-66 · 300 mg", pill:"🌿", cat:"Herbs & adaptogens", slot:"night", food:"either", carrier:"warm milk (honey only once cooled)", dose:"1 capsule",
-    why:[
-      {t:"ayur",e:"traditional",x:"Nishi — night, before bed. Classic anupana is warm milk; grounds Vata and Pitta."},
-      {t:"west",e:"emerging",x:"Growing human-trial data for stress and sleep. Check thyroid, sedative and immunosuppressant meds — and avoid in pregnancy."},
-      {t:"tcm",e:"traditional",x:"Calming, Shen-anchoring tonic — evening."}
-    ]}
-];
+const SUPP_BASE = [];
 
-const BIO_BASE = [
-  {id:"vit-d-25oh", name:"Vitamin D, 25-OH", val:"27", unit:"ng/mL", n:27, lo:30, hi:100, flo:40, fhi:60, dir:"below", date:"Jun 28, 2026",
-    status:{cls:"alert", label:"Below range ↓"},
-    interp:"Still below the standard range despite steady D3. A common driver is taking it without enough dietary fat, or a dose that hasn't been matched to your baseline. Whether to adjust the dose or move it to your fattiest meal is a good conversation for your practitioner, with a recheck in a few months."},
-  {id:"ferritin", name:"Ferritin", val:"14", unit:"ng/mL", n:14, lo:15, hi:150, flo:40, fhi:70, dir:"below", date:"Jun 28, 2026",
-    status:{cls:"alert", label:"Below range ↓"}, prep:true,
-    interp:"Low iron stores — a well-recognized cause of fatigue, and often the real driver behind tiredness blamed on other things. Review with your practitioner to confirm the cause and guide iron dosing and rechecks."},
-  {id:"hemoglobin", name:"Hemoglobin", val:"12.6", unit:"g/dL", n:12.6, lo:12.0, hi:15.5, flo:13.0, fhi:14.5, dir:"low-normal", date:"Jun 28, 2026",
-    status:{cls:"warn", label:"Low-normal"},
-    interp:"At the low end of normal. Combined with low ferritin, this points toward iron stores being depleted before overt anemia — a picture worth tracking over time as iron status is addressed."},
-  {id:"homocysteine", name:"Homocysteine", val:"11.8", unit:"µmol/L", n:11.8, lo:0, hi:15, flo:0, fhi:7, dir:"above-functional", date:"Jun 28, 2026",
-    status:{cls:"warn", label:"Above optimal"},
-    interp:"Within the standard lab range but above the tighter functional target used in integrative practice. Elevated homocysteine is often discussed in the context of B-vitamin methylation (folate, B12, B6). Whether methylated forms suit you is a conversation for your practitioner, alongside your B6 intake."},
-  {id:"b6", name:"Vitamin B6 (P-5-P)", val:"48", unit:"nmol/L", n:48, lo:20, hi:125, flo:30, fhi:80, dir:"in", date:"Jun 28, 2026",
-    status:{cls:"ok", label:"In range"},
-    interp:"Currently within range — but your daily B6 comes from more than one product (B-Complex + multivitamin). Because chronically high B6 is linked to sensory nerve symptoms, tracking the running total across products matters more than any single reading. Flag any tingling or numbness."},
-  {id:"b12", name:"Vitamin B12 (serum)", val:"Mid-normal", unit:"pg/mL", n:null, lo:200, hi:900, flo:500, fhi:900, dir:"in", date:"Jun 28, 2026",
-    status:{cls:"ok", label:"In range"}, prep:true,
-    interp:"Within range and supported by supplementation. Serum B12 can read normal even when methylation demand is high, so it's best read alongside homocysteine rather than alone."}
-];
+const BIO_BASE = [];
 
 /* ---- persistence: imported items live in localStorage and merge with the sample data ---- */
 const STORE_KEY = "dosely.v1";
-function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {supps:[],labs:[],hideBase:false}; }catch(e){ return {supps:[],labs:[],hideBase:false}; } }
+function loadStore(){
+  let st; try{ st = JSON.parse(localStorage.getItem(STORE_KEY)); }catch(e){}
+  st = st || {};
+  if(!st.protocols){
+    st.protocols = [];
+    if(st.supps && st.supps.length){   // migrate pre-protocol schema
+      st.protocols.push({id:"p-"+Date.now().toString(36), name:"Imported protocol", items:st.supps, createdAt:new Date().toISOString()});
+      st.activeProtocolId = st.protocols[0].id;
+    }
+    delete st.supps; delete st.hideBase;
+  }
+  st.labs = st.labs||[];
+  return st;
+}
 function saveStore(st){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(st)); }catch(e){} }
 let STORE = loadStore();
+function activeProtocol(){ return (STORE.protocols||[]).find(pr=>pr.id===STORE.activeProtocolId) || null; }
+function ensureActive(name){
+  let pr = activeProtocol();
+  if(!pr){ pr = {id:"p-"+Date.now().toString(36), name:name||"My protocol", items:[], createdAt:new Date().toISOString()};
+    STORE.protocols.push(pr); STORE.activeProtocolId = pr.id; }
+  return pr;
+}
 /* ---- dynamic rounds: every item carries a clock time (minutes from midnight) ---- */
 const SLOT_DEFAULT_MIN = {morning:420, midday:750, evening:1110, night:1290};
 SUPP_BASE.forEach(x=>{ if(x.time==null) x.time = SLOT_DEFAULT_MIN[x.slot] ?? 420; });
 function bandKey(min){ return min<660 ? "morning" : min<900 ? "midday" : min<1200 ? "evening" : "night"; }
 function bandLabel(min){ return {morning:"Morning", midday:"Midday", evening:"Evening", night:"Night"}[bandKey(min)]; }
 function fmtTime(min){ let h=Math.floor(min/60), m=min%60; const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+String(m).padStart(2,"0")+" "+ap; }
-function baseSupps(){ return STORE.hideBase ? [] : SUPP_BASE; }
-let SUPP = baseSupps().concat(STORE.supps||[]);
-let BIO  = BIO_BASE.concat(STORE.labs||[]);
+
+let SUPP = [];
+let BIO  = [];
 function applyTimes(list){
   const ov = STORE.overrides||{};
   return list.map(x=>{
@@ -890,17 +848,10 @@ function applyTimes(list){
     return (t===x.time && ov[x.id]==null) ? x : Object.assign({}, x, {time:t, slot:bandKey(t)});
   });
 }
-function rebuildMerged(){ SUPP = applyTimes(baseSupps().concat(STORE.supps||[])); BIO = BIO_BASE.concat(STORE.labs||[]); }
+function rebuildMerged(){ const pr = activeProtocol(); SUPP = applyTimes(pr ? pr.items.slice() : []); BIO = (STORE.labs||[]).slice(); }
 rebuildMerged();
 
-const CUMULATIVE = [
-  {nutrient:"Vitamin B6", cur:27, max:100, unit:"mg", pct:27, sources:"B-Complex 25 mg + Multivitamin 2 mg",
-    note:"Well under the 100 mg/day upper limit — but B6 stacks silently across bottles, and chronic high intake is linked to nerve symptoms. Track the running total (energy drinks count too)."},
-  {nutrient:"Zinc", cur:26, max:40, unit:"mg", pct:65, sources:"Zinc Picolinate 15 mg + Multivitamin 11 mg", warn:true,
-    note:"Near the EFSA 25 mg figure, under the 40 mg limit. That ceiling exists because chronic higher zinc depletes copper over weeks. Worth reviewing copper balance if long-term."},
-  {nutrient:"Vitamin A (preformed)", cur:600, max:3000, unit:"mcg", pct:20, sources:"Multivitamin (retinyl acetate)",
-    note:"Well within limits from one source. Preformed retinol accumulates — if a retinol product or cod liver oil were added later, the combined total would be worth re-checking. Beta-carotene doesn't count the same way."}
-];
+const CUMULATIVE = [];
 
 const SLOTS = [
   {key:"morning", title:"Morning", clk:"7:00 AM", badge:"🌅",
@@ -943,18 +894,14 @@ const SLOT_ICON = {
 ICON["generic"] = _svg(`<rect x="5" y="8.5" width="14" height="7" rx="3.5" transform="rotate(-32 12 12)"/><line x1="10.2" y1="8.2" x2="13.8" y2="15.8"/>`);
 const icon = id => ICON[id] || ((id||"").startsWith("u-") ? ICON.generic : "");
 
-const WEEK = {
-  days: [
-    {d:"Mon", n:14}, {d:"Tue", n:15, today:true}, {d:"Wed", n:16},
-    {d:"Thu", n:17}, {d:"Fri", n:18}, {d:"Sat", n:19}, {d:"Sun", n:20}
-  ],
-  dailyCount: 10,
-  rows: [
-    {label:"Daily items", sub:"every day", pill:"daily", pattern:[1,1,1,1,1,1,1]},
-    {label:"Iron", sub:"every 2 days", pill:"ferrous-bisglycinate", pattern:[1,0,1,0,1,0,1]},
-    {label:"Vitamin C", sub:"with iron", pill:"vit-c", pattern:[1,0,1,0,1,0,1]}
-  ]
-};
+function buildWeek(){
+  const now = new Date();
+  const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay()+6)%7));
+  const days = Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i);
+    return {d:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()], n:d.getDate(), mo:d.toLocaleDateString("en-US",{month:"short"}), today:d.toDateString()===now.toDateString()}; });
+  return { days, rows:[{label:"Daily items", sub:"every day", pill:"daily", pattern:[1,1,1,1,1,1,1]}] };
+}
+const WEEK = buildWeek();
 
 const CTX = {
   today:{eyebrow:"The protocol",
@@ -1021,13 +968,9 @@ const TAKE = {
   "ashwagandha":"Take with warm milk before bed — add honey only once it has cooled."
 };
 const FREQ = {"ferrous-bisglycinate":"Every other day","vit-c":"Every other day"};
-// Scheduling: alternate-day items only appear in a dose time on days they're actually due.
-// Today (Tue, Jul 15) is a rest day for iron and its paired vitamin C.
-const RESTING_TODAY = new Set(["ferrous-bisglycinate","vit-c"]);
-const RESTING = [
-  {id:"ferrous-bisglycinate", note:"Every other day · next dose tomorrow, Wed Jul 16"},
-  {id:"vit-c", note:"Paired with iron · next dose Wed, Jul 16"}
-];
+// Cadence (rest days) returns when cadence-aware imports land.
+const RESTING_TODAY = new Set();
+const RESTING = [];
 
 function doseCard(s){
   const card = el("div","dose"); card.id="dose-"+s.id;
@@ -1116,6 +1059,20 @@ function dayRounds(){
 }
 function renderToday(){
   const host = $("#today-slots"); host.innerHTML="";
+  const act = activeProtocol();
+  const tk = $("#today-kicker");
+  if(tk) tk.textContent = (act?act.name:"No protocol yet")+" · "+new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+  const tp = $("#today-progress"); if(tp) tp.style.display = SUPP.length?"":"none";
+  if(!SUPP.length){
+    const eb = el("div","empty-state");
+    eb.innerHTML = `<div class="es-mark">${SLOT_ICON.morning}</div>
+      <h3>Your protocol lives here</h3>
+      <p>Import it once and Dosely turns it into a timed, intelligent daily schedule — a PDF from your practitioner, a photo, a pasted note, or by hand.</p>
+      <button class="btn-primary" id="es-import">Import my protocol</button>`;
+    host.appendChild(eb);
+    eb.querySelector("#es-import").addEventListener("click", ()=>setTab("scan"));
+    updateProgress(); return;
+  }
   const info = shiftInfo(); const moves = Object.keys(info);
   if(moves.length){
     const b = el("div","adjust-banner");
@@ -1156,21 +1113,21 @@ function renderToday(){
   updateProgress();
 }
 
-function weekRows(){ return STORE.hideBase ? [WEEK.rows[0]] : WEEK.rows; }
-function dayLoad(i){ const daily = SUPP.filter(x=>!RESTING_TODAY.has(x.id) || STORE.hideBase).length; const cyc = weekRows().filter(r=>r.sub!=="every day" && r.pattern[i]).length; return daily + cyc; }
+function weekRows(){ return WEEK.rows; }
+function dayLoad(i){ return SUPP.filter(x=>!RESTING_TODAY.has(x.id)).length; }
 
 function weekDetail(i){
   const d = WEEK.days[i];
   const cyc = weekRows().filter(r=>r.sub!=="every day" && r.pattern[i]).map(r=>r.label);
   const dd = $("#week-detail");
-  dd.innerHTML = cyc.length
-    ? `<b>${d.d}, Jul ${d.n}</b> — ${dayLoad(i)} items. Cyclical doses due: <b>${cyc.join(" + ")}</b>.`
-    : `<b>${d.d}, Jul ${d.n}</b> — ${dayLoad(i)} items. Rest day for <b>Iron &amp; Vitamin C</b> (every other day, for absorption).`;
+  dd.innerHTML = `<b>${d.d}, ${d.mo} ${d.n}</b> — ${dayLoad(i)} item${dayLoad(i)===1?"":"s"} scheduled.`;
 }
 
 function renderWeek(){
   const host = $("#week-grid");
   const days = WEEK.days;
+  const wr = $("#week-range");
+  if(wr) wr.textContent = days[0].d+" "+days[0].mo+" "+days[0].n+" – "+days[6].d+" "+days[6].mo+" "+days[6].n;
   let html = `<div class="wg-cell wg-corner"></div>`;
   days.forEach((d,i)=>{
     html += `<div class="wg-cell wg-day ${d.today?'today-col wg-today':''}" data-idx="${i}">
@@ -1193,10 +1150,8 @@ function renderWeek(){
 
 function renderCumulative(){
   const host = $("#cumulative");
-  if(STORE.hideBase){
-    host.innerHTML = `<h3>Cumulative dose</h3><p class="csub">Meters build as Dosely learns the labeled nutrient amounts in your imported protocol — coming as imports get richer.</p>`;
-    return;
-  }
+  host.innerHTML = `<h3>Cumulative dose</h3><p class="csub">Meters build as Dosely learns the labeled nutrient amounts in your protocol — coming as imports get richer.</p>`;
+  return;
   host.innerHTML = `<h3>Cumulative dose</h3><p class="csub">Summed across every product in your stack — checked against upper limits.</p>` +
     CUMULATIVE.map(c=>`
       <div class="meter">
@@ -1209,7 +1164,10 @@ function renderCumulative(){
 
 function renderStack(){
   renderCumulative();
+  const sk = $("#stack-kicker");
+  if(sk){ const n=SUPP.length, f=SUPP.filter(x=>x.flag).length; sk.textContent = n? (n+" item"+(n===1?"":"s")+(f?" · "+f+" flagged":"")) : "Nothing yet"; }
   const host = $("#stack-list"); host.innerHTML="";
+  if(!SUPP.length){ host.innerHTML = `<div class="io-hint" style="margin-top:8px">No items yet — import a protocol from the Scan tab.</div>`; return; }
   const cats = [...new Set(SUPP.map(s=>s.cat))];
   cats.forEach(cat=>{
     host.appendChild(el("div","group-label",cat));
@@ -1254,7 +1212,10 @@ function rangeBar(b){
 }
 
 function renderLabs(){
+  const lk = $("#labs-kicker");
+  if(lk) lk.textContent = BIO.length ? BIO.length+" marker"+(BIO.length===1?"":"s") : "Your bloodwork";
   const host = $("#labs-list"); host.innerHTML="";
+  if(!BIO.length){ host.innerHTML = `<div class="io-hint" style="margin-top:4px">No labs yet — upload results above (or try the sample) and they'll appear here with trends.</div>`; return; }
   BIO.forEach(b=>{
     const lab = el("div","lab"); lab.id="lab-"+b.id;
     const links = (b.dir!=null? SUPP.filter(s=>s.link&&s.link.includes(b.id)) : []);
@@ -1486,21 +1447,35 @@ function mkStackItem(it, src, n){
   };
 }
 function commitSupps(items, src){
+  const pr = ensureActive();
   let added=0;
   for(const it of items){
     if(it.st!=="new" || it.skip) continue;
-    STORE.supps.push(mkStackItem(it, src, added));
+    pr.items.push(mkStackItem(it, src, added));
     added++;
   }
   saveStore(STORE); renderAll();
   return added;
 }
 function commitReplace(items, src){
+  const pr = ensureActive();
   const keep = items.filter(it=>!it.skip);
-  STORE.hideBase = true;
-  STORE.supps = keep.map((it,i)=>mkStackItem(it, src, i));
+  pr.items = keep.map((it,i)=>mkStackItem(it, src, i));
   saveStore(STORE); renderAll();
   return keep.length;
+}
+function commitNewProtocol(items, src, name){
+  const keep = items.filter(it=>!it.skip);
+  const pr = {id:"p-"+Date.now().toString(36), name:name||src||"New protocol", items:keep.map((it,i)=>mkStackItem(it, src, i)), createdAt:new Date().toISOString()};
+  STORE.protocols.push(pr); STORE.activeProtocolId = pr.id;
+  saveStore(STORE); renderAll();
+  return keep.length;
+}
+function setActiveProtocol(id){ STORE.activeProtocolId = id; saveStore(STORE); renderAll(); }
+function deleteProtocol(id){
+  STORE.protocols = STORE.protocols.filter(pr=>pr.id!==id);
+  if(STORE.activeProtocolId===id) STORE.activeProtocolId = STORE.protocols.length ? STORE.protocols[0].id : null;
+  saveStore(STORE); renderAll();
 }
 function commitLabs(items, src){
   const today = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
@@ -1554,11 +1529,18 @@ function reviewSupps(items, src){
     </div>`).join("");
   const nNew = items.filter(i=>i.st==="new").length;
   const isProtocol = items.length >= 4;
+  const act = activeProtocol();
+  const primary = isProtocol
+    ? `<button class="btn-primary" id="scan-new">Save as a new protocol</button>`
+    : `<button class="btn-primary" id="scan-add">${act?`Add ${nNew} to “${act.name}”`:`Start my protocol with ${nNew?nNew:"these"}`}</button>`;
+  const secondary = isProtocol && act
+    ? `<button class="btn-ghost" id="scan-add">Merge into “${act.name}”</button>
+       <button class="btn-replace" id="scan-replace">Replace “${act.name}” with this</button>`
+    : (isProtocol ? "" : "");
   p.innerHTML = `${scanHeader(src)}
-    <div class="mi-note">${items.length} recognized · checked against your stack. Tap ✓ to exclude an item.</div>
+    <div class="mi-note">${items.length} recognized${act?` · checked against “${act.name}”`:""}. Tap ✓ to exclude an item.</div>
     <div class="mi-list">${rows}</div>
-    <button class="btn-primary" id="scan-add">Add ${nNew} to stack</button>
-    ${isProtocol?`<button class="btn-replace" id="scan-replace">Replace my whole protocol with this</button>`:""}
+    ${primary}${secondary}
     <button class="btn-ghost" id="scan-reset">Cancel</button>`;
   p.classList.add("show");
   p.querySelectorAll(".mi-inc").forEach(b=>b.addEventListener("click",()=>{
@@ -1567,16 +1549,27 @@ function reviewSupps(items, src){
     const left = items.filter(x=>x.st==="new"&&!x.skip).length;
     p.querySelector("#scan-add").textContent = "Add "+left+" to stack";
   }));
-  p.querySelector("#scan-add").addEventListener("click",()=>{
+  const addBtn = p.querySelector("#scan-add");
+  if(addBtn) addBtn.addEventListener("click",()=>{
     const n = commitSupps(items, src);
-    toast(n ? n+" added — scheduled into your day" : "Nothing new to add");
+    toast(n ? n+" added to “"+activeProtocol().name+"”" : "Nothing new to add");
     resetScan(); if(n) setTimeout(()=>setTab("today"), 800);
+  });
+  const newBtn = p.querySelector("#scan-new");
+  if(newBtn) newBtn.addEventListener("click",()=>{
+    const suggested = src.replace(/\.pdf$/i,"").replace(/[_-]+/g," ").trim().slice(0,40) || "New protocol";
+    const name = (prompt("Name this protocol:", suggested)||"").trim();
+    if(!name) return;
+    const n = commitNewProtocol(items, src, name);
+    toast("“"+name+"” saved & active — "+n+" items");
+    resetScan(); setTimeout(()=>setTab("today"), 800);
   });
   const rep = p.querySelector("#scan-replace");
   if(rep) rep.addEventListener("click",()=>{
-    if(!confirm("Replace your entire current protocol with these "+items.filter(i=>!i.skip).length+" items? Your existing list will be cleared (undo via ⋯ settings).")) return;
+    const act = activeProtocol();
+    if(!confirm("Replace everything in “"+act.name+"” with these "+items.filter(i=>!i.skip).length+" items?")) return;
     const n = commitReplace(items, src);
-    toast("Protocol replaced — "+n+" items scheduled");
+    toast("“"+act.name+"” replaced — "+n+" items");
     resetScan(); setTimeout(()=>setTab("today"), 800);
   });
   p.querySelector("#scan-reset").addEventListener("click", resetScan);
@@ -1783,7 +1776,28 @@ function downloadICS(){
 }
 
 /* ---- settings ---- */
-function openSettings(){ $("#sheet").classList.add("open"); $("#key-input").value = getKey(); }
+function renderProtocolList(){
+  const host = $("#protocol-list"); if(!host) return;
+  const prs = STORE.protocols||[];
+  if(!prs.length){ host.innerHTML = `<div class="io-hint">No saved protocols yet — import one from the Scan tab.</div>`; return; }
+  host.innerHTML = prs.map(pr=>`
+    <div class="proto-row ${pr.id===STORE.activeProtocolId?"active":""}" data-id="${pr.id}">
+      <span class="proto-dot"></span>
+      <div class="proto-main"><b>${pr.name}</b><span>${pr.items.length} item${pr.items.length===1?"":"s"}</span></div>
+      <button class="proto-del" data-del="${pr.id}" aria-label="Delete">✕</button>
+    </div>`).join("");
+  host.querySelectorAll(".proto-row").forEach(r=>r.addEventListener("click", e=>{
+    if(e.target.closest(".proto-del")) return;
+    setActiveProtocol(r.dataset.id); renderProtocolList();
+    toast("Switched to “"+activeProtocol().name+"”");
+  }));
+  host.querySelectorAll(".proto-del").forEach(b=>b.addEventListener("click", ()=>{
+    const pr = prs.find(x=>x.id===b.dataset.del);
+    if(!confirm("Delete “"+pr.name+"” ("+pr.items.length+" items)?")) return;
+    deleteProtocol(b.dataset.del); renderProtocolList();
+  }));
+}
+function openSettings(){ $("#sheet").classList.add("open"); $("#key-input").value = getKey(); renderProtocolList(); }
 function closeSettings(){ $("#sheet").classList.remove("open"); }
 function hidePanels(){ $$(".io-panel").forEach(x=>x.hidden=true); }
 function resetScan(){
@@ -1825,9 +1839,9 @@ function setTab(tab){
 }
 
 function setItemTime(id, minutes){
-  const mine = (STORE.supps||[]).find(x=>x.id===id);
+  const pr = activeProtocol(); if(!pr) return;
+  const mine = pr.items.find(x=>x.id===id);
   if(mine){ mine.time = minutes; mine.slot = bandKey(minutes); }
-  else { STORE.overrides = STORE.overrides||{}; STORE.overrides[id] = minutes; }
   saveStore(STORE); renderAll();
   toast("Moved to "+fmtTime(minutes));
 }
@@ -1960,7 +1974,10 @@ $("#alerts-enable").addEventListener("click", enableAlerts);
 $("#ics-download").addEventListener("click", downloadICS);
 $("#key-save").addEventListener("click", ()=>{ try{ localStorage.setItem(KEY_STORE, $("#key-input").value.trim()); }catch(e){} toast("Key saved on this device"); closeSettings(); });
 $("#key-clear").addEventListener("click", ()=>{ try{ localStorage.removeItem(KEY_STORE); }catch(e){} $("#key-input").value=""; toast("Key removed"); });
-$("#data-clear").addEventListener("click", ()=>{ STORE={supps:[],labs:[],hideBase:false}; saveStore(STORE); renderAll(); toast("Imported items cleared — sample protocol restored"); closeSettings(); });
+$("#data-clear").addEventListener("click", ()=>{
+  if(!confirm("Delete ALL protocols and labs on this device? This can't be undone.")) return;
+  STORE={protocols:[],activeProtocolId:null,labs:[]}; saveStore(STORE); renderAll(); toast("All data cleared"); closeSettings();
+});
 setTab("today");
 </script>
 </body>
