@@ -171,6 +171,10 @@
   .dose-cue .cue{font-size:12px; color:var(--ink-soft)}
   .dose-cue .amt{font-family:var(--mono); font-size:11px; color:var(--ink-faint)}
   .freq-badge{font-family:var(--mono); font-size:9px; letter-spacing:.04em; text-transform:uppercase; color:var(--c-ayur); background:var(--c-ayur-tint); border-radius:5px; padding:2px 6px; white-space:nowrap}
+  .time-edit{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
+  .te-label{font-size:12px; color:var(--ink-soft)}
+  .te-change{font-size:11.5px; color:var(--brand); font-weight:600; cursor:pointer; position:relative}
+  .te-input{position:absolute; inset:0; opacity:0; width:100%; cursor:pointer}
   .how-take{display:flex; gap:10px; align-items:flex-start; background:var(--brand-tint); border-radius:10px; padding:10px 12px; margin-bottom:11px}
   .how-take .ht-ic{font-size:15px; flex:0 0 auto; line-height:1.4}
   .how-take .ht-body{display:flex; flex-direction:column; gap:3px}
@@ -719,7 +723,7 @@
               </div>
               <div class="sheet-div"></div>
               <div class="sheet-h" style="font-size:16px">Reminders</div>
-              <div class="io-hint" style="margin:0 0 10px">Each dose round can ping your phone at its time (7:00 · 12:30 · 6:30 · 9:30).</div>
+              <div class="io-hint" style="margin:0 0 10px">Every round in your plan can ping your phone at its exact time — however many rounds your protocol has.</div>
               <div class="io-2col">
                 <button class="btn-primary" id="alerts-enable">Enable alerts</button>
                 <button class="btn-ghost" id="ics-download">Calendar file</button>
@@ -865,10 +869,24 @@ const STORE_KEY = "dosely.v1";
 function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {supps:[],labs:[],hideBase:false}; }catch(e){ return {supps:[],labs:[],hideBase:false}; } }
 function saveStore(st){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(st)); }catch(e){} }
 let STORE = loadStore();
+/* ---- dynamic rounds: every item carries a clock time (minutes from midnight) ---- */
+const SLOT_DEFAULT_MIN = {morning:420, midday:750, evening:1110, night:1290};
+SUPP_BASE.forEach(x=>{ if(x.time==null) x.time = SLOT_DEFAULT_MIN[x.slot] ?? 420; });
+function bandKey(min){ return min<660 ? "morning" : min<900 ? "midday" : min<1200 ? "evening" : "night"; }
+function bandLabel(min){ return {morning:"Morning", midday:"Midday", evening:"Evening", night:"Night"}[bandKey(min)]; }
+function fmtTime(min){ let h=Math.floor(min/60), m=min%60; const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+String(m).padStart(2,"0")+" "+ap; }
 function baseSupps(){ return STORE.hideBase ? [] : SUPP_BASE; }
 let SUPP = baseSupps().concat(STORE.supps||[]);
 let BIO  = BIO_BASE.concat(STORE.labs||[]);
-function rebuildMerged(){ SUPP = baseSupps().concat(STORE.supps||[]); BIO = BIO_BASE.concat(STORE.labs||[]); }
+function applyTimes(list){
+  const ov = STORE.overrides||{};
+  return list.map(x=>{
+    let t = ov[x.id]!=null ? ov[x.id] : (x.time!=null ? x.time : (SLOT_DEFAULT_MIN[x.slot] ?? 420));
+    return (t===x.time && ov[x.id]==null) ? x : Object.assign({}, x, {time:t, slot:bandKey(t)});
+  });
+}
+function rebuildMerged(){ SUPP = applyTimes(baseSupps().concat(STORE.supps||[])); BIO = BIO_BASE.concat(STORE.labs||[]); }
+rebuildMerged();
 
 const CUMULATIVE = [
   {nutrient:"Vitamin B6", cur:27, max:100, unit:"mg", pct:27, sources:"B-Complex 25 mg + Multivitamin 2 mg",
@@ -939,7 +957,7 @@ const CTX = {
     body:"Your stack becomes an optimal daily <strong>protocol</strong>: what to take, when, with which carrier, and how often — blending <strong>Western absorption rules</strong>, the <strong>TCM organ clock</strong> and <strong>Ayurvedic aushadha-kala</strong>, reconciled against your labs. Then it tracks it. Tap any item for the how &amp; the why.",
     list:[
       {m:"west",t:"Scheduled across days — iron runs every other day, so it's off today's list (next dose tomorrow)."},
-      {m:"ayur",t:"Every item tells you how to take it: warm water, within a fatty meal, warm milk at night."},
+      {m:"ayur",t:"Rounds follow the plan's own clock — 7:00, 7:30, 9:30… as many as the protocol needs."},
       {m:"tcm",t:"Stimulating tonics land in the morning window; calming herbs at night."}
     ]},
   week:{eyebrow:"The plan, over time",
@@ -1027,6 +1045,7 @@ function doseCard(s){
       <button class="check" aria-label="Mark ${s.name} taken"></button>
     </div>
     <div class="expand">
+      <div class="time-edit"><span class="te-label">Scheduled ${fmtTime(s.time)}</span><label class="te-change">change<input type="time" class="te-input" value="${String(Math.floor(s.time/60)).padStart(2,"0")}:${String(s.time%60).padStart(2,"0")}"></label></div>
       <div class="how-take"><span class="ht-ic">${_svg('<path d="M5.5 10.5 h11 v4.5 a4.5 4.5 0 0 1 -4.5 4.5 h-2 a4.5 4.5 0 0 1 -4.5 -4.5 Z"/><path d="M16.5 11.5 h1.4 a2.1 2.1 0 0 1 0 4.2 h-1.6"/><path d="M8.6 7.5 c0 -1 .9 -1.2 .9 -2.1 M11.6 7.5 c0 -1 .9 -1.2 .9 -2.1"/>')}</span><div class="ht-body"><b>How to take</b><span>${TAKE[s.id]||s.carrier||""}</span></div></div>
       <div class="expand-meta">${s.brand} · ${s.dose}</div>
       <div class="tags">${tags.join("")}</div>
@@ -1041,6 +1060,15 @@ function doseCard(s){
     card.classList.toggle("taken");
     updateProgress();
   });
+  const ti = card.querySelector(".te-input");
+  if(ti){
+    ti.addEventListener("click", e=>e.stopPropagation());
+    ti.addEventListener("change", ()=>{
+      const parts = ti.value.split(":").map(Number);
+      if(isNaN(parts[0])) return;
+      setItemTime(s.id, parts[0]*60+parts[1]);
+    });
+  }
   return card;
 }
 
@@ -1053,11 +1081,11 @@ function updateProgress(){
   if(txt) txt.textContent = `${taken} of ${total} taken`;
   const btn = document.querySelector('#mark-all');
   if(btn) btn.textContent = (taken===total && total>0) ? "Clear all" : "Take all";
-  SLOTS.forEach(slot=>{
-    const items = SUPP.filter(s=>s.slot===slot.key && !RESTING_TODAY.has(s.id));
-    const t = items.filter(s=>document.querySelector('#dose-'+s.id)?.classList.contains('taken')).length;
-    const c = document.querySelector('#count-'+slot.key);
-    if(c) c.textContent = `${t}/${items.length}`;
+  document.querySelectorAll('#pane-today .slot[data-round]').forEach(w=>{
+    const all = w.querySelectorAll('.dose').length;
+    const t = w.querySelectorAll('.dose.taken').length;
+    const c = w.querySelector('.slot-count');
+    if(c) c.textContent = `${t}/${all}`;
   });
 }
 
@@ -1074,26 +1102,30 @@ function roundAll(key){
   updateProgress();
 }
 
+function dayRounds(){
+  const due = SUPP.filter(s=>!RESTING_TODAY.has(s.id));
+  const byTime = {};
+  due.forEach(s=>{ (byTime[s.time] = byTime[s.time]||[]).push(s); });
+  return Object.keys(byTime).map(Number).sort((a,b)=>a-b).map(t=>({time:t, key:"t"+t, items:byTime[t]}));
+}
 function renderToday(){
   const host = $("#today-slots"); host.innerHTML="";
-  SLOTS.forEach(slot=>{
-    const items = SUPP.filter(s=>s.slot===slot.key && !RESTING_TODAY.has(s.id));
-    if(!items.length) return;
-    const wrap = el("div","slot"); wrap.id="slot-"+slot.key;
+  dayRounds().forEach(round=>{
+    const wrap = el("div","slot"); wrap.id="slot-"+round.key; wrap.dataset.round=round.key;
     const head = el("div","slot-head");
     head.innerHTML = `
-      <span class="slot-badge">${SLOT_ICON[slot.key]||slot.badge}</span>
-      <div class="slot-title"><span class="t">${slot.title}</span><span class="clk">${slot.clk}</span></div>
-      <span class="slot-count" id="count-${slot.key}">0/${items.length}</span>
+      <span class="slot-badge">${SLOT_ICON[bandKey(round.time)]}</span>
+      <div class="slot-title"><span class="t">${fmtTime(round.time)}</span><span class="clk">${bandLabel(round.time).toLowerCase()}</span></div>
+      <span class="slot-count" id="count-${round.key}">0/${round.items.length}</span>
       <button class="round-all" title="Mark this whole round taken">✓ all</button>
       <span class="slot-chev">▾</span>`;
-    const body = el("div","slot-body"); body.id="body-"+slot.key;
-    items.forEach(s=>body.appendChild(doseCard(s)));
+    const body = el("div","slot-body"); body.id="body-"+round.key;
+    round.items.forEach(s=>body.appendChild(doseCard(s)));
     head.addEventListener("click", e=>{
       if(e.target.closest(".round-all")) return;
       wrap.classList.toggle("collapsed");
     });
-    head.querySelector(".round-all").addEventListener("click", e=>{ e.stopPropagation(); roundAll(slot.key); });
+    head.querySelector(".round-all").addEventListener("click", e=>{ e.stopPropagation(); roundAll(round.key); });
     wrap.appendChild(head); wrap.appendChild(body);
     host.appendChild(wrap);
   });
@@ -1354,11 +1386,11 @@ function hourToSlot(h){ return h<10.5 ? "morning" : h<15 ? "midday" : h<20 ? "ev
 function parseSuppText(text){
   const lines = text.split(/\n+/).flatMap(l=>l.split(/[;•]+|,(?![0-9])| and /i)).map(t=>t.trim()).filter(t=>t.length>1);
   const out=[]; const seen=new Set();
-  let ctxSlot=null, ctxFood=null;
+  let ctxSlot=null, ctxFood=null, ctxTime=null;
   for(let i=0;i<lines.length;i++){
     const ln = lines[i];
     const tm = ln.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-    if(tm){ let h=(+tm[1])%12; if(/pm/i.test(tm[3])) h+=12; ctxSlot=hourToSlot(h); }
+    if(tm){ let h=(+tm[1])%12; if(/pm/i.test(tm[3])) h+=12; ctxSlot=hourToSlot(h); ctxTime=h*60+(+tm[2]); }
     if(/empty stomach|fasted/i.test(ln)) ctxFood="empty stomach";
     else if(/real fat|fatty/i.test(ln)) ctxFood="with fatty meal";
     else if(/\bmeal\b|with food|break your fast|breakfast|lunch|dinner/i.test(ln)) ctxFood="with food";
@@ -1368,16 +1400,17 @@ function parseSuppText(text){
     if(d){ name=d.c; dict=d; }
     else if(isRx){ const m=ln.match(RX_RE); name=m[0][0].toUpperCase()+m[0].slice(1).toLowerCase(); }
     else { const g=genericProduct(ln); if(g) name=g; }
-    if(!name || seen.has(norm(name))) continue;
+    const seenKey = norm(name)+"@"+(ctxTime!=null?ctxTime:"x");
+    if(!name || seen.has(seenKey)) continue;
     // dose: this line, or the next line if it isn't itself a product
     let dose = extractDose(ln);
     if(!dose && lines[i+1] && !matchSupp(lines[i+1]) && !genericProduct(lines[i+1]) && !RX_RE.test(lines[i+1])) dose = extractDose(lines[i+1]);
     if(!dict && !isRx && !dose) continue;   // unknown name with no dose anywhere near it -> probably not a product
-    seen.add(norm(name));
+    seen.add(seenKey);
     const hints = timingHints(ln);
     if(isRx){
       out.push({name, dose, slot:hints.slot||ctxSlot||"morning", food:hints.food||ctxFood||"with food", carrier:"as prescribed",
-                st:"review", note:"prescription — keep with your prescriber's plan"});
+                time:ctxTime, st:"review", note:"prescription — keep with your prescriber's plan"});
       continue;
     }
     const nn = norm(name);
@@ -1390,7 +1423,8 @@ function parseSuppText(text){
     }
     out.push({name, dose,
       slot: hints.slot || (dict?null:ctxSlot) || (dict&&dict.slot) || ctxSlot || "morning",
-      food: hints.food || (dict?null:ctxFood) || (dict&&dict.food) || ctxFood || "with food",
+      time: (ctxTime!=null && !hints.slot) ? ctxTime : null,
+      food: hints.food || ctxFood || (dict&&dict.food) || "with food",
       carrier: dict ? dict.carrier : (ctxFood==="empty stomach" ? "as the protocol directs — empty stomach" : "as the protocol directs"),
       st, note});
   }
@@ -1432,7 +1466,7 @@ function mkStackItem(it, src, n){
   return {
     id:"u-"+slug(it.name)+"-"+Date.now().toString(36)+n,
     name:it.name, brand:(isRx?"Rx · ":"")+"Imported · "+src, pill:"+", cat:isRx?"Prescriptions":"Imported",
-    slot:it.slot, food:it.food, carrier:it.carrier, dose:it.dose||"see label",
+    slot:it.slot, time:(it.time!=null?it.time:(SLOT_DEFAULT_MIN[it.slot]!=null?SLOT_DEFAULT_MIN[it.slot]:420)), food:it.food, carrier:it.carrier, dose:it.dose||"see label",
     flag:isRx?"Prescription":undefined,
     why
   };
@@ -1501,7 +1535,7 @@ function reviewSupps(items, src){
   const rows = items.map((it,i)=>`
     <div class="mi-row" data-i="${i}">
       <span class="mi-badge ${it.st}">${MI_MARK[it.st]}</span>
-      <div class="mi-main"><b>${it.name}</b><span>${[it.dose, it.st==="new" ? (it.slot+" · "+it.food) : it.note].filter(Boolean).join(" · ")}</span></div>
+      <div class="mi-main"><b>${it.name}</b><span>${[it.dose, it.st==="new" ? ((it.time!=null?fmtTime(it.time):it.slot)+" · "+it.food) : it.note].filter(Boolean).join(" · ")}</span></div>
       ${it.st==="new" ? `<button class="mi-inc on" data-i="${i}" aria-label="include">✓</button>` : `<span class="mi-tag ${it.st}">${MI_TAG[it.st]}</span>`}
     </div>`).join("");
   const nNew = items.filter(i=>i.st==="new").length;
@@ -1668,20 +1702,18 @@ async function lookupUPC(code){
 }
 
 /* ---- reminders ---- */
-const SLOT_TIMES = {morning:[7,0], midday:[12,30], evening:[18,30], night:[21,30]};
-const SLOT_LABEL = {morning:"Morning", midday:"Midday", evening:"Evening", night:"Night"};
-function slotItems(key){ return SUPP.filter(x=>x.slot===key && !RESTING_TODAY.has(x.id) || (STORE.hideBase && x.slot===key)).map(x=>x.name); }
+function alertRounds(){ return dayRounds().map(r=>({time:r.time, names:r.items.map(x=>x.name)})); }
 async function enableAlerts(){
   const LN = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
   if(LN){
     try{
       const perm = await LN.requestPermissions();
       if(perm.display!=="granted"){ toast("Notifications not permitted in iOS Settings"); return; }
-      try{ await LN.cancel({notifications:[{id:1},{id:2},{id:3},{id:4}]}); }catch(e){}
-      const notifs = Object.keys(SLOT_TIMES).map((k,i)=>({
-        id:i+1, title:"Dosely — "+SLOT_LABEL[k]+" round",
-        body:(slotItems(k).slice(0,6).join(", ")||"Your scheduled items")+(slotItems(k).length>6?"…":""),
-        schedule:{ on:{ hour:SLOT_TIMES[k][0], minute:SLOT_TIMES[k][1] }, repeats:true, allowWhileIdle:true }
+      try{ await LN.cancel({notifications:Array.from({length:24},(_,i)=>({id:i+1}))}); }catch(e){}
+      const notifs = alertRounds().slice(0,24).map((r,i)=>({
+        id:i+1, title:"Dosely — "+fmtTime(r.time)+" round",
+        body:(r.names.slice(0,6).join(", ")||"Your scheduled items")+(r.names.length>6?"…":""),
+        schedule:{ on:{ hour:Math.floor(r.time/60), minute:r.time%60 }, repeats:true, allowWhileIdle:true }
       }));
       await LN.schedule({notifications:notifs});
       try{ localStorage.setItem("dosely.remind","native"); }catch(e){}
@@ -1700,13 +1732,12 @@ let _tickerOn=false;
 function startWebTicker(){
   if(_tickerOn) return; _tickerOn=true;
   setInterval(()=>{
-    const now=new Date(); const hh=now.getHours(), mm=now.getMinutes();
-    for(const k of Object.keys(SLOT_TIMES)){
-      const [H,M]=SLOT_TIMES[k];
-      if(hh===H && mm===M){
-        const stamp="dosely.fired."+k+"."+now.toDateString();
+    const now=new Date(); const cur=now.getHours()*60+now.getMinutes();
+    for(const r of alertRounds()){
+      if(cur===r.time){
+        const stamp="dosely.fired.t"+r.time+"."+now.toDateString();
         try{ if(localStorage.getItem(stamp)) continue; localStorage.setItem(stamp,"1"); }catch(e){}
-        try{ new Notification("Dosely — "+SLOT_LABEL[k]+" round", {body:(slotItems(k).slice(0,6).join(", ")||"Your scheduled items")}); }catch(e){}
+        try{ new Notification("Dosely — "+fmtTime(r.time)+" round", {body:(r.names.slice(0,6).join(", ")||"Your scheduled items")}); }catch(e){}
       }
     }
   }, 30000);
@@ -1717,15 +1748,14 @@ function buildICS(){
   const now = new Date();
   const ymd = now.getFullYear().toString()+String(now.getMonth()+1).padStart(2,"0")+String(now.getDate()).padStart(2,"0");
   let ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Dosely//Reminders//EN\r\n";
-  Object.keys(SLOT_TIMES).forEach((k,i)=>{
-    const [H,M]=SLOT_TIMES[k];
-    const items = slotItems(k);
-    if(!items.length) return;
+  alertRounds().forEach(r=>{
+    if(!r.names.length) return;
+    const H=Math.floor(r.time/60), M=r.time%60;
     const dt = ymd+"T"+String(H).padStart(2,"0")+String(M).padStart(2,"0")+"00";
-    ics += "BEGIN:VEVENT\r\nUID:dosely-"+k+"-"+ymd+"@dosely\r\nDTSTART:"+dt+"\r\nDURATION:PT15M\r\nRRULE:FREQ=DAILY\r\n";
-    ics += "SUMMARY:"+icsEscape("Dosely — "+SLOT_LABEL[k]+" round")+"\r\n";
-    ics += "DESCRIPTION:"+icsEscape(items.join(", "))+"\r\n";
-    ics += "BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:"+icsEscape(SLOT_LABEL[k]+" supplements")+"\r\nTRIGGER:PT0S\r\nEND:VALARM\r\nEND:VEVENT\r\n";
+    ics += "BEGIN:VEVENT\r\nUID:dosely-t"+r.time+"-"+ymd+"@dosely\r\nDTSTART:"+dt+"\r\nDURATION:PT15M\r\nRRULE:FREQ=DAILY\r\n";
+    ics += "SUMMARY:"+icsEscape("Dosely — "+fmtTime(r.time)+" round")+"\r\n";
+    ics += "DESCRIPTION:"+icsEscape(r.names.join(", "))+"\r\n";
+    ics += "BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:"+icsEscape("Supplements at "+fmtTime(r.time))+"\r\nTRIGGER:PT0S\r\nEND:VALARM\r\nEND:VEVENT\r\n";
   });
   ics += "END:VCALENDAR\r\n";
   return ics;
@@ -1780,6 +1810,13 @@ function setTab(tab){
   $("#ctx-list").innerHTML = c.list.map(i=>`<li>${markHTML(i.m)}<span>${i.t}</span></li>`).join("");
 }
 
+function setItemTime(id, minutes){
+  const mine = (STORE.supps||[]).find(x=>x.id===id);
+  if(mine){ mine.time = minutes; mine.slot = bandKey(minutes); }
+  else { STORE.overrides = STORE.overrides||{}; STORE.overrides[id] = minutes; }
+  saveStore(STORE); renderAll();
+  toast("Moved to "+fmtTime(minutes));
+}
 function renderAll(){ rebuildMerged(); renderToday(); renderWeek(); renderStack(); renderLabs(); }
 
 /* ---- init ---- */
