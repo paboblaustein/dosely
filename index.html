@@ -567,6 +567,10 @@
   .wc-btns{display:grid; grid-template-columns:1fr 1fr; gap:9px}
   .wc-btn{border:1px solid var(--brand); color:var(--brand); background:transparent; border-radius:10px; padding:10px 8px; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer}
   .wc-btn:hover{background:var(--brand-tint)}
+  .win-banner{border:1px solid color-mix(in oklab, var(--s-warn) 40%, transparent); background:var(--s-warn-tint); border-radius:14px; padding:14px 15px; margin:12px 0 4px}
+  .wb-h{font-weight:600; font-size:13.5px; margin-bottom:5px}
+  .win-banner p{margin:0 0 11px; font-size:12.5px; color:var(--ink-soft); line-height:1.5}
+  .win-banner .btn-primary{margin-top:0}
   .empty-state{text-align:center; padding:44px 22px; border:1px dashed var(--line); border-radius:16px; margin-top:16px}
   .empty-state .es-mark svg{width:40px;height:40px;color:var(--c-ayur);margin:0 auto 6px}
   .empty-state h3{font-family:var(--serif); font-size:20px; font-weight:600; margin:6px 0 8px}
@@ -1185,7 +1189,17 @@ function renderWeek(){
       : fmtD(w.start)+" – "+fmtD(w.end)+(w.days?" · "+w.days+" days":"")+(dn>=1&&dn<=w.days?" · day "+dn:"");
   }
   const we = $("#win-edit-link");
-  if(we) we.style.display = pr ? "" : "none";
+  if(we) we.style.display = (pr && !w.unset) ? "" : "none";
+  const oldBanner = $("#win-banner"); if(oldBanner) oldBanner.remove();
+  if(pr && w.unset){
+    const b = el("div","win-banner"); b.id="win-banner";
+    b.innerHTML = `<div class="wb-h">This protocol has no calendar window yet</div>
+      <p>Showing a generic 4 weeks. Set the real span (e.g. 90 days from Aug 20) — or re-import your protocol PDF and Dosely reads it automatically.</p>
+      <div class="io-2col"><button class="btn-primary" id="wb-set">Set window</button><button class="btn-ghost" id="wb-reimport">Re-import PDF</button></div>`;
+    host.parentNode.insertBefore(b, $("#win-panel"));
+    b.querySelector("#wb-set").addEventListener("click", ()=>{ openWinPanel(); });
+    b.querySelector("#wb-reimport").addEventListener("click", ()=>setTab("scan"));
+  }
   host.innerHTML = "";
   if(!SUPP.length){ host.innerHTML = `<div class="io-hint" style="margin-top:8px">Import a protocol and its full calendar appears here.</div>`; return; }
   // months from window start through window end (cap 6)
@@ -2084,15 +2098,19 @@ $("#upc-go").addEventListener("click", ()=>{
   const c=$("#upc-input").value.replace(/\D/g,""); if(c.length<8){ toast("Enter the full barcode number"); return; }
   hidePanels(); $("#scan-idle").style.display="none"; lookupUPC(c);
 });
-$("#win-edit-link").addEventListener("click", ()=>{
+function openWinPanel(){
   const pr = activeProtocol(); if(!pr) return;
-  const panel = $("#win-panel"); panel.hidden = !panel.hidden;
-  if(!panel.hidden){
-    const w = protoWindow();
-    const d = w.start;
-    $("#win-start").value = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-    $("#win-days").value = w.unset ? "" : (w.days||"");
-  }
+  const panel = $("#win-panel"); panel.hidden = false;
+  const w = protoWindow();
+  const d = w.start;
+  $("#win-start").value = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  $("#win-days").value = w.unset ? "" : (w.days||"");
+  panel.scrollIntoView({block:"center", behavior:"smooth"});
+  $("#win-days").focus();
+}
+$("#win-edit-link").addEventListener("click", ()=>{
+  const panel = $("#win-panel");
+  if(panel.hidden) openWinPanel(); else panel.hidden = true;
 });
 $("#win-save").addEventListener("click", ()=>{
   const pr = activeProtocol(); if(!pr) return;
