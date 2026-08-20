@@ -484,6 +484,53 @@
   .safety-strip svg{ width:13px; height:13px; color:var(--ink-faint); display:inline-block; vertical-align:-2px }
   .src-btn .si svg{ width:20px; height:20px; color:var(--brand-deep); display:block }
   .scan-drop .big svg{ width:30px; height:30px; color:var(--brand-deep); display:inline-block }
+  .labs-btn{display:flex; align-items:center; gap:11px; width:100%; padding:13px 14px; margin:2px 0 12px; border-radius:12px; border:1px solid color-mix(in oklab, var(--c-west) 30%, transparent); background:var(--c-west-tint); cursor:pointer; font-family:inherit; color:var(--ink); text-align:left; transition:box-shadow .2s}
+  .labs-btn:hover{box-shadow:var(--shadow)}
+  .labs-btn .si svg{width:20px; height:20px; color:var(--c-west); display:block}
+  .labs-btn .st{font-weight:600; font-size:13px}
+  .labs-btn .sd{font-size:10.5px; color:var(--ink-faint)}
+  .mi-note{font-size:12px; color:var(--ink-soft); margin:8px 2px 10px}
+  .mi-list{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--surface-2); margin:0 0 12px}
+  .mi-row{display:flex; align-items:center; gap:11px; padding:11px 13px}
+  .mi-row + .mi-row{border-top:1px solid var(--line)}
+  .mi-badge{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;flex:0 0 auto}
+  .mi-badge.new{background:var(--brand-tint); color:var(--brand-deep)}
+  .mi-badge.review{background:var(--s-warn-tint); color:var(--s-warn)}
+  .mi-badge.have{background:var(--sunk); color:var(--ink-faint)}
+  .mi-badge.low{background:var(--s-alert-tint); color:var(--s-alert)}
+  .mi-badge.warn{background:var(--s-warn-tint); color:var(--s-warn)}
+  .mi-badge.ok{background:var(--s-ok-tint); color:var(--s-ok)}
+  .mi-main{flex:1 1 auto; min-width:0}
+  .mi-main b{display:block; font-size:13.5px; letter-spacing:-.006em}
+  .mi-main span{font-size:11.5px; color:var(--ink-soft)}
+  .mi-val{font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; flex:0 0 auto}
+  .mi-tag{font-size:10px; font-weight:600; padding:2px 8px; border-radius:999px; flex:0 0 auto; letter-spacing:.03em}
+  .mi-tag.new{background:var(--brand-tint); color:var(--brand-deep)}
+  .mi-tag.review{background:var(--s-warn-tint); color:var(--s-warn)}
+  .mi-tag.have{background:var(--sunk); color:var(--ink-faint)}
+  .note-raw{font-size:12px; color:var(--ink-soft); background:var(--sunk); border-radius:10px; padding:10px 12px; margin:0 0 10px; font-style:italic; line-height:1.5}
+  .io-panel{border:1px solid var(--line); border-radius:12px; background:var(--surface-2); padding:13px; margin:0 0 12px; animation:fade .25s ease}
+  .io-label{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-faint); margin:8px 0 5px}
+  .io-label:first-child{margin-top:0}
+  .io-label span{text-transform:none; letter-spacing:0}
+  .io-panel textarea, .io-panel input[type=text], .sheet input, .io-panel select{width:100%; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:13.5px; padding:10px 11px; box-sizing:border-box}
+  .io-panel textarea{resize:vertical; line-height:1.5}
+  .io-panel textarea:focus, .io-panel input:focus, .sheet input:focus, .io-panel select:focus{outline:2px solid color-mix(in oklab, var(--brand) 40%, transparent); outline-offset:1px}
+  .io-hint{font-size:11px; color:var(--ink-faint); margin-top:7px; line-height:1.45}
+  .io-2col{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:4px}
+  .io-panel .btn-primary{margin-top:10px}
+  .mi-inc{width:24px;height:24px;border-radius:50%;border:1.6px solid var(--line);background:transparent;color:transparent;cursor:pointer;flex:0 0 auto;font-size:12px;display:grid;place-items:center;padding:0}
+  .mi-inc.on{background:var(--brand); border-color:var(--brand); color:var(--surface-2)}
+  .sheet{position:absolute; inset:0; background:color-mix(in oklab, var(--ink) 26%, transparent); display:none; align-items:flex-end; z-index:30}
+  .sheet.open{display:flex; animation:fade .2s ease}
+  .sheet-card{background:var(--surface-2); border-top-left-radius:20px; border-top-right-radius:20px; padding:18px 18px calc(18px + env(safe-area-inset-bottom)); width:100%; box-shadow:var(--shadow-lift)}
+  .sheet-h{font-family:var(--serif); font-size:19px; font-weight:600; margin-bottom:10px}
+  .sheet .io-2col{margin-top:12px}
+  .sheet-div{height:1px; background:var(--line); margin:14px 0}
+  .btn-ghost.danger{color:var(--s-alert); border-color:color-mix(in oklab, var(--s-alert) 35%, transparent)}
+  .sample-link{background:none; border:none; font-family:inherit; font-size:11.5px; color:var(--c-west); cursor:pointer; padding:0; margin:-6px 0 12px 2px; text-align:left; display:block}
+  .sample-link:hover{text-decoration:underline}
+  @media (max-width:600px){ .sheet{position:fixed} }
 </style>
 </head>
 <body>
@@ -592,14 +639,48 @@
               <div class="pane-head">
                 <div class="kicker">Add to stack</div>
                 <h2>Scan &amp; Import</h2>
-                <p>Snap a bottle, an Amazon or Fullscript screenshot, or a barcode — vision reads the label, you confirm.</p>
+                <p>Drop in anything — bottle, screenshot, PDF, note, or lab report. Dosely reads it and sorts it to the right place; you confirm.</p>
               </div>
               <div class="scan-src">
-                <button class="src-btn" data-scan="amazon"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5 a1.8 1.8 0 0 1 1.8 -1.8 h2 L9.4 4.6 h5.2 L16.2 6.7 h2 A1.8 1.8 0 0 1 20 8.5 v8.2 a1.8 1.8 0 0 1 -1.8 1.8 H5.8 A1.8 1.8 0 0 1 4 16.7 Z"/><circle cx="12" cy="12.4" r="3.4"/></svg></span><span><span class="st">Amazon screenshot</span><br><span class="sd">order or listing</span></span></button>
                 <button class="src-btn" data-scan="bottle"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5 h6 M9.6 3.5 v3 L8 9 v9.5 a2 2 0 0 0 2 2 h4 a2 2 0 0 0 2 -2 V9 l-1.6 -2.5 v-3"/><path d="M8 13 h8"/></svg></span><span><span class="st">Photo of bottle</span><br><span class="sd">front + facts panel</span></span></button>
-                <button class="src-btn" data-scan="fullscript"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14 a3.5 3.5 0 0 1 0 -5 l2.5 -2.5 a3.5 3.5 0 0 1 5 5 L16 13"/><path d="M14 10 a3.5 3.5 0 0 1 0 5 l-2.5 2.5 a3.5 3.5 0 0 1 -5 -5 L8 11"/></svg></span><span><span class="st">Connect Fullscript</span><br><span class="sd">import your orders</span></span></button>
-                <button class="src-btn" data-scan="barcode"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7 V5 a1 1 0 0 1 1 -1 h2 M17 4 h2 a1 1 0 0 1 1 1 v2 M20 17 v2 a1 1 0 0 1 -1 1 h-2 M7 20 H5 a1 1 0 0 1 -1 -1 v-2"/><path d="M7.5 8 v8 M10.5 8 v8 M13.5 8 v8 M16.5 8 v8"/></svg></span><span><span class="st">Scan barcode</span><br><span class="sd">UPC lookup</span></span></button>
+                <button class="src-btn" data-scan="shot"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 16.5 9.5 12 13 15 16 12.5 20 16"/></svg></span><span><span class="st">Screenshot</span><br><span class="sd">Amazon, IG, anywhere</span></span></button>
+                <button class="src-btn" data-scan="pdf"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5 h7 L18.5 8 v11 a1.5 1.5 0 0 1 -1.5 1.5 H7 A1.5 1.5 0 0 1 5.5 19 V5 A1.5 1.5 0 0 1 7 3.5 Z"/><path d="M14 3.5 V8 h4.5"/><path d="M8.5 12 h7 M8.5 15 h7 M8.5 18 h4"/></svg></span><span><span class="st">PDF / document</span><br><span class="sd">practitioner protocol</span></span></button>
+                <button class="src-btn" data-scan="note"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 4.5 a1.8 1.8 0 0 1 2.5 2.5 L9 17 5.5 18 6.5 14.5 Z"/><path d="M4.5 21 h15"/></svg></span><span><span class="st">Paste a note</span><br><span class="sd">free text, any format</span></span></button>
+                <button class="src-btn" data-scan="barcode"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 V5 a1 1 0 0 1 1 -1 h2 M17 4 h2 a1 1 0 0 1 1 1 v2 M20 17 v2 a1 1 0 0 1 -1 1 h-2 M7 20 H5 a1 1 0 0 1 -1 -1 v-2"/><path d="M7.5 8 v8 M10.5 8 v8 M13.5 8 v8 M16.5 8 v8"/></svg></span><span><span class="st">Scan barcode</span><br><span class="sd">UPC lookup</span></span></button>
+                <button class="src-btn" data-scan="fullscript"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14 a3.5 3.5 0 0 1 0 -5 l2.5 -2.5 a3.5 3.5 0 0 1 5 5 L16 13"/><path d="M14 10 a3.5 3.5 0 0 1 0 5 l-2.5 2.5 a3.5 3.5 0 0 1 -5 -5 L8 11"/></svg></span><span><span class="st">Connect Fullscript</span><br><span class="sd">orders &amp; refills</span></span></button>
               </div>
+              <button class="labs-btn" data-scan="labs"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><line x1="8" y1="15" x2="16" y2="15"/></svg></span><span><span class="st">Upload lab results</span><br><span class="sd">Quest · Labcorp · Function · any PDF or photo</span></span></button>
+              <button class="sample-link" id="sample-labs">No file handy? Run a sample Quest-style PDF →</button>
+              <input type="file" id="file-image" accept="image/*" hidden>
+              <input type="file" id="file-doc" accept="application/pdf,image/*" hidden>
+              <div class="io-panel" id="note-panel" hidden>
+                <label class="io-label" for="note-text">Paste or type — any format</label>
+                <textarea id="note-text" rows="4" placeholder="e.g. mag glycinate 400 before bed, fish oil with lunch, try l-theanine 200 in the afternoon"></textarea>
+                <button class="btn-primary" id="note-parse">Parse note</button>
+              </div>
+              <div class="io-panel" id="upc-panel" hidden>
+                <label class="io-label" for="upc-input">Barcode digits (UPC/EAN)</label>
+                <input type="text" id="upc-input" inputmode="numeric" placeholder="e.g. 733739045881">
+                <button class="btn-primary" id="upc-go">Look up</button>
+                <div class="io-hint">Checked against the OpenFoodFacts open database.</div>
+              </div>
+              <div class="io-panel" id="manual-panel" hidden>
+                <label class="io-label" for="man-name">Name</label>
+                <input type="text" id="man-name" placeholder="e.g. CoQ10">
+                <label class="io-label" for="man-dose">Dose (optional)</label>
+                <input type="text" id="man-dose" placeholder="e.g. 100 mg">
+                <div class="io-2col">
+                  <div><label class="io-label" for="man-slot">When</label>
+                  <select id="man-slot"><option value="">Auto</option><option value="morning">Morning</option><option value="midday">Midday</option><option value="evening">Evening</option><option value="night">Night</option></select></div>
+                  <div><label class="io-label" for="man-food">Food</label>
+                  <select id="man-food"><option value="">Auto</option><option value="empty stomach">Empty stomach</option><option value="with food">With food</option><option value="with fatty meal">With fatty meal</option><option value="either">Either</option></select></div>
+                </div>
+                <button class="btn-primary" id="man-add">Add to stack</button>
+              </div>
+              <div class="io-panel" id="fs-panel" hidden>
+                <div class="mi-note"><strong>Fullscript sync needs practitioner API access</strong> — it's on the roadmap. Meanwhile: export your order as PDF (or screenshot it) and drop it in here; the importer reads it the same way.</div>
+              </div>
+              <button class="btn-ghost" id="manual-open">＋ Add manually</button>
               <div class="scan-stage">
                 <div class="scan-drop" id="scan-idle">
                   <div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 C5 11 10 5.5 19 5 c.3 9 -5 14 -11.5 14"/><path d="M5 19 C8 14 12 10.5 16.5 8"/></svg></div>
@@ -619,6 +700,21 @@
           <!-- toast + nav -->
           <div class="toast" id="toast"></div>
           <div class="safety-strip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 19 6.2 v5.6 c0 4.3 -2.9 7.2 -7 8.7 -4.1 -1.5 -7 -4.4 -7 -8.7 V6.2 Z"/><path d="M9 12 l2.2 2.2 L15.5 9.9"/></svg> Organizes your info — not medical advice.</div>
+          <div class="sheet" id="sheet">
+            <div class="sheet-card">
+              <div class="sheet-h">Settings</div>
+              <label class="io-label" for="key-input">Anthropic API key <span>· enables photo &amp; scanned-PDF reading</span></label>
+              <input type="password" id="key-input" placeholder="sk-ant-…" autocomplete="off">
+              <div class="io-hint">Stored only on this device, sent only to Anthropic when you import an image. Get one at console.anthropic.com.</div>
+              <div class="io-2col">
+                <button class="btn-primary" id="key-save">Save key</button>
+                <button class="btn-ghost" id="key-clear">Remove key</button>
+              </div>
+              <div class="sheet-div"></div>
+              <button class="btn-ghost danger" id="data-clear">Clear all imported items &amp; labs</button>
+              <button class="btn-ghost" id="sheet-close">Close</button>
+            </div>
+          </div>
           <nav class="nav">
             <button class="navbtn active" data-tab="today">
               <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 14a8 8 0 0 1 16 0"/><line x1="2" y1="14" x2="22" y2="14"/><line x1="12" y1="14" x2="16" y2="7"/><circle cx="12" cy="14" r="1.4" fill="currentColor" stroke="none"/></svg>
@@ -665,7 +761,7 @@
 
 <script>
 /* ============================ DATA (from verified research) ============================ */
-const SUPP = [
+const SUPP_BASE = [
   {id:"ferrous-bisglycinate", name:"Iron (Ferrous Bisglycinate)", brand:"Thorne · 25 mg elemental", pill:"🩸", cat:"Minerals", slot:"morning", food:"empty stomach", carrier:"warm water + vitamin C", dose:"25 mg elemental", space:"2h from calcium, zinc & coffee", link:["ferritin","hemoglobin"], recon:"Ferritin low — discuss",
     why:[
       {t:"west",e:"established",x:"Empty stomach with vitamin C boosts absorption; keep 2h from calcium, zinc and coffee, which blunt it."},
@@ -728,7 +824,7 @@ const SUPP = [
     ]}
 ];
 
-const BIO = [
+const BIO_BASE = [
   {id:"vit-d-25oh", name:"Vitamin D, 25-OH", val:"27", unit:"ng/mL", n:27, lo:30, hi:100, flo:40, fhi:60, dir:"below", date:"Jun 28, 2026",
     status:{cls:"alert", label:"Below range ↓"},
     interp:"Still below the standard range despite steady D3. A common driver is taking it without enough dietary fat, or a dose that hasn't been matched to your baseline. Whether to adjust the dose or move it to your fattiest meal is a good conversation for your practitioner, with a recheck in a few months."},
@@ -748,6 +844,15 @@ const BIO = [
     status:{cls:"ok", label:"In range"}, prep:true,
     interp:"Within range and supported by supplementation. Serum B12 can read normal even when methylation demand is high, so it's best read alongside homocysteine rather than alone."}
 ];
+
+/* ---- persistence: imported items live in localStorage and merge with the sample data ---- */
+const STORE_KEY = "dosely.v1";
+function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {supps:[],labs:[]}; }catch(e){ return {supps:[],labs:[]}; } }
+function saveStore(st){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(st)); }catch(e){} }
+let STORE = loadStore();
+let SUPP = SUPP_BASE.concat(STORE.supps||[]);
+let BIO  = BIO_BASE.concat(STORE.labs||[]);
+function rebuildMerged(){ SUPP = SUPP_BASE.concat(STORE.supps||[]); BIO = BIO_BASE.concat(STORE.labs||[]); }
 
 const CUMULATIVE = [
   {nutrient:"Vitamin B6", cur:27, max:100, unit:"mg", pct:27, sources:"B-Complex 25 mg + Multivitamin 2 mg",
@@ -796,7 +901,8 @@ const SLOT_ICON = {
   evening: _svg(`${_arc}<circle cx="17.2" cy="12.9" r="2.5" fill="currentColor" stroke="none"/>`),
   night:   _svg(`<path d="M4.5 16.5 A8 8 0 0 1 19.5 16.5" stroke-opacity=".45"/><line x1="3.5" y1="16.5" x2="20.5" y2="16.5" stroke-opacity=".45"/><path d="M13.6 6.2 a3.4 3.4 0 1 0 3.2 4.6 a2.7 2.7 0 0 1 -3.2 -4.6 Z" fill="currentColor" stroke="none"/>`)
 };
-const icon = id => ICON[id] || "";
+ICON["generic"] = _svg(`<rect x="5" y="8.5" width="14" height="7" rx="3.5" transform="rotate(-32 12 12)"/><line x1="10.2" y1="8.2" x2="13.8" y2="15.8"/>`);
+const icon = id => ICON[id] || ((id||"").startsWith("u-") ? ICON.generic : "");
 
 const WEEK = {
   days: [
@@ -844,13 +950,13 @@ const CTX = {
       {m:"ayur",t:"Interpretations defer every decision to your practitioner — never a dose."},
       {m:"west",t:"The biotin lab-prep warning is a real safety feature: it prevents skewed results."}
     ]},
-  scan:{eyebrow:"Frictionless intake",
-    title:"Snap it. Confirm it. Done.",
-    body:"The #1 reason people abandon tracking apps is tedious entry. the app reads a <strong>bottle, an Amazon screenshot, or a Fullscript order</strong> with vision — then asks you to <strong>confirm what it parsed</strong>. The one field it always double-checks: <strong>mcg vs mg</strong>, the silent failure mode.",
+  scan:{eyebrow:"Universal import",
+    title:"Drop in anything. It lands in the right place.",
+    body:"One import surface for everything: a <strong>bottle, screenshot, practitioner PDF, pasted note, Fullscript order — or a Quest/Labcorp lab report</strong>. The app detects what it is, parses it, checks it <strong>against what you already take</strong>, and routes supplements to your Stack and biomarkers to Labs — you confirm before anything lands.",
     list:[
-      {m:"west",t:"Extracts brand, form, dose, serving size and 'take with food' from the label."},
-      {m:"tcm",t:"Auto-annotates the new item across all three traditions the moment it's added."},
-      {m:"ayur",t:"Turmeric/curcumin comes in already carrying its anupana and dosha notes."}
+      {m:"west",t:"A protocol PDF imports as a batch — new items added, dose conflicts flagged ('PDF says 5000 IU, you take 2000')."},
+      {m:"west",t:"A Quest PDF becomes biomarkers with trends — and a biotin-interference check on sensitive assays."},
+      {m:"tcm",t:"Every new item is auto-annotated across all three traditions the moment it lands."}
     ]}
 };
 
@@ -987,7 +1093,7 @@ function renderToday(){
   updateProgress();
 }
 
-function dayLoad(i){ return WEEK.dailyCount + WEEK.rows.filter(r=>r.sub!=="every day" && r.pattern[i]).length; }
+function dayLoad(i){ const daily = SUPP.filter(x=>!RESTING_TODAY.has(x.id)).length; const cyc = WEEK.rows.filter(r=>r.sub!=="every day" && r.pattern[i]).length; return daily + cyc; }
 
 function weekDetail(i){
   const d = WEEK.days[i];
@@ -1120,49 +1226,365 @@ function renderLabs(){
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 
 /* ---- scan flow ---- */
-const SCAN_RESULT = {
-  amazon:{img:"🟠", src:"Amazon order screenshot",
-    fields:[["Product","Curcumin Phytosome (Meriva)"],["Brand","Thorne"],["Form","Capsule"],["Serving","2 capsules"],["Curcumin","1000 mg",true],["Label says","Take with food"]]},
-  bottle:{img:"💊", src:"Bottle photo",
-    fields:[["Product","Curcumin Phytosome (Meriva)"],["Brand","Thorne"],["Form","Capsule"],["Serving","2 capsules"],["Curcumin","1000 mg",true],["Label says","Take with food"]]},
-  fullscript:{img:"🔗", src:"Fullscript order",
-    fields:[["Product","Curcumin Phytosome (Meriva)"],["Brand","Thorne"],["Form","Capsule"],["Serving","2 capsules"],["Curcumin","1000 mg",true],["Label says","Take with food"]]},
-  barcode:{img:"▦", src:"UPC 693749 · matched",
-    fields:[["Product","Curcumin Phytosome (Meriva)"],["Brand","Thorne"],["Form","Capsule"],["Serving","2 capsules"],["Curcumin","1000 mg",true],["Label says","Take with food"]]}
-};
-function runScan(kind){
-  const r = SCAN_RESULT[kind];
+/* ================= REAL IMPORT ENGINE ================= */
+/* Canonical supplement dictionary — aliases -> canonical name + sensible timing defaults */
+const SUPP_DICT = [
+ {c:"Magnesium Glycinate", a:["magnesium glycinate","mag glycinate","magnesium bisglycinate","mag gly","magnesium"], slot:"night", food:"either", carrier:"warm water, 30–60 min before bed"},
+ {c:"Omega-3 Fish Oil", a:["fish oil","omega-3","omega 3","epa/dha","cod liver oil","algal oil"], slot:"midday", food:"with fatty meal", carrier:"inside a meal"},
+ {c:"Vitamin D3", a:["vitamin d3","cholecalciferol","vitamin d"], slot:"midday", food:"with fatty meal", carrier:"inside your fattiest meal"},
+ {c:"Vitamin K2", a:["vitamin k2","menaquinone","mk-7","mk7"], slot:"midday", food:"with fatty meal", carrier:"inside a meal"},
+ {c:"Vitamin C", a:["vitamin c","ascorbic acid","ester-c"], slot:"morning", food:"either", carrier:"water"},
+ {c:"Iron", a:["ferrous bisglycinate","ferrous sulfate","iron bisglycinate","iron"], slot:"morning", food:"empty stomach", carrier:"warm water + vitamin C, away from coffee & calcium"},
+ {c:"Zinc", a:["zinc picolinate","zinc"], slot:"evening", food:"with food", carrier:"with a meal, 2h from iron"},
+ {c:"B-Complex", a:["b-complex","b complex","b vitamins"], slot:"morning", food:"with food", carrier:"with breakfast"},
+ {c:"Vitamin B12", a:["methylcobalamin","vitamin b12","b12"], slot:"morning", food:"either", carrier:"sublingual, or water"},
+ {c:"Methylfolate", a:["methylfolate","5-mthf","folate","folic acid"], slot:"morning", food:"either", carrier:"water"},
+ {c:"Ashwagandha", a:["ashwagandha","ksm-66","withania"], slot:"night", food:"either", carrier:"warm milk before bed (honey once cooled)"},
+ {c:"L-Theanine", a:["l-theanine","theanine"], slot:"midday", food:"either", carrier:"water"},
+ {c:"Curcumin", a:["curcumin","turmeric","meriva"], slot:"midday", food:"with fatty meal", carrier:"with fat (+ black pepper unless phytosome)"},
+ {c:"Berberine", a:["berberine"], slot:"midday", food:"with food", carrier:"with a carb-containing meal"},
+ {c:"CoQ10", a:["ubiquinol","ubiquinone","coenzyme q10","coq10"], slot:"midday", food:"with fatty meal", carrier:"inside a meal"},
+ {c:"Probiotic", a:["probiotic","synbiotic"], slot:"morning", food:"with food", carrier:"warm (not hot) water, with food"},
+ {c:"Creatine", a:["creatine"], slot:"morning", food:"either", carrier:"any time — daily consistency is what matters"},
+ {c:"NAC", a:["n-acetylcysteine","n-acetyl cysteine","nac"], slot:"morning", food:"empty stomach", carrier:"water, 30 min before food"},
+ {c:"L-Glutamine", a:["l-glutamine","glutamine"], slot:"morning", food:"empty stomach", carrier:"water, away from protein meals"},
+ {c:"Glycine", a:["glycine"], slot:"night", food:"either", carrier:"water before bed"},
+ {c:"Rhodiola", a:["rhodiola"], slot:"morning", food:"empty stomach", carrier:"water, before breakfast"},
+ {c:"Melatonin", a:["melatonin"], slot:"night", food:"either", carrier:"30–60 min before bed — discuss dose with your practitioner"},
+ {c:"Calcium", a:["calcium citrate","calcium carbonate","calcium"], slot:"evening", food:"with food", carrier:"with a meal, 2h away from iron"},
+ {c:"Selenium", a:["selenium"], slot:"morning", food:"with food", carrier:"with food"},
+ {c:"Vitamin E", a:["vitamin e","tocopherol"], slot:"midday", food:"with fatty meal", carrier:"inside a meal"},
+ {c:"Quercetin", a:["quercetin"], slot:"midday", food:"with food", carrier:"with a meal"},
+ {c:"Resveratrol", a:["resveratrol"], slot:"midday", food:"with fatty meal", carrier:"with fat"},
+ {c:"Collagen", a:["collagen"], slot:"morning", food:"either", carrier:"any drink"},
+ {c:"Taurine", a:["taurine"], slot:"evening", food:"either", carrier:"water"},
+ {c:"5-HTP", a:["5-htp","5htp"], slot:"night", food:"either", carrier:"before bed — check interactions with your practitioner"},
+ {c:"Lion's Mane", a:["lion's mane","lions mane","hericium"], slot:"morning", food:"either", carrier:"morning, with or without food"},
+ {c:"Reishi", a:["reishi","ganoderma"], slot:"night", food:"either", carrier:"evening, warm water"},
+ {c:"Chlorella", a:["chlorella"], slot:"morning", food:"with food", carrier:"with food"},
+ {c:"Spirulina", a:["spirulina"], slot:"morning", food:"with food", carrier:"with food"},
+ {c:"Alpha-Lipoic Acid", a:["alpha-lipoic","alpha lipoic","ala "], slot:"morning", food:"empty stomach", carrier:"water, 30 min before food"},
+ {c:"Boron", a:["boron"], slot:"morning", food:"with food", carrier:"with food"},
+ {c:"Potassium", a:["potassium"], slot:"midday", food:"with food", carrier:"with food"},
+ {c:"Biotin", a:["biotin"], slot:"morning", food:"either", carrier:"water — pause ~72h before blood draws (assay interference)"}
+];
+/* Biomarker dictionary for lab reports */
+const LAB_DICT = [
+ {c:"HbA1c", a:["hemoglobin a1c","hba1c","a1c"], unit:"%", lo:4, hi:5.6, flo:4.8, fhi:5.4},
+ {c:"Vitamin D, 25-OH", a:["25-hydroxy","25-oh","25 oh","vitamin d"], unit:"ng/mL", lo:30, hi:100, flo:40, fhi:60},
+ {c:"Ferritin", a:["ferritin"], unit:"ng/mL", lo:15, hi:150, flo:40, fhi:70},
+ {c:"Hemoglobin", a:["hemoglobin","hgb"], unit:"g/dL", lo:12, hi:15.5, flo:13, fhi:14.5},
+ {c:"Homocysteine", a:["homocysteine"], unit:"µmol/L", lo:0, hi:15, flo:0, fhi:7},
+ {c:"Vitamin B12", a:["vitamin b12","cobalamin","b12"], unit:"pg/mL", lo:200, hi:900, flo:500, fhi:900},
+ {c:"Vitamin B6", a:["pyridoxal","vitamin b6","b6"], unit:"nmol/L", lo:20, hi:125, flo:30, fhi:80},
+ {c:"TSH", a:["thyroid stimulating","tsh"], unit:"mIU/L", lo:0.4, hi:4.5, flo:1, fhi:2.5},
+ {c:"Free T4", a:["free t4","ft4"], unit:"ng/dL", lo:0.8, hi:1.8},
+ {c:"Free T3", a:["free t3","ft3"], unit:"pg/mL", lo:2.3, hi:4.2},
+ {c:"hs-CRP", a:["hs-crp","c-reactive"], unit:"mg/L", lo:0, hi:3, flo:0, fhi:1},
+ {c:"Fasting Insulin", a:["insulin"], unit:"µIU/mL", lo:2, hi:19, flo:2, fhi:8},
+ {c:"Fasting Glucose", a:["glucose"], unit:"mg/dL", lo:70, hi:99, flo:75, fhi:90},
+ {c:"Iron, serum", a:["serum iron","iron, serum"], unit:"µg/dL", lo:50, hi:170}
+];
+
+const MI_MARK = {new:"+", review:"✎", have:"✓", low:"↓", high:"↑", warn:"•", ok:"✓"};
+const MI_TAG  = {new:"new", review:"review", have:"in stack"};
+const norm = t => (t||"").toLowerCase().replace(/[^a-z0-9\s'-]/g," ").replace(/\s+/g," ").trim();
+const slug = t => norm(t).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+
+function matchSupp(fragment){
+  const f = " "+norm(fragment)+" ";
+  let best=null;
+  for(const d of SUPP_DICT){ for(const al of d.a){ if(f.includes(" "+al+" ") || f.includes(al)){ if(!best || al.length>best.len) best={d, len:al.length}; } } }
+  return best && best.d;
+}
+function extractDose(fragment){
+  const m = fragment.match(/(\d+(?:[.,]\d+)?)\s*(mg|mcg|µg|iu|g|billion|cfu|ml|drops?|caps?(?:ules)?|softgels?|tablets?)/i);
+  return m ? (m[1]+" "+m[2].toLowerCase()) : "";
+}
+function timingHints(fragment){
+  const f = norm(fragment); const h = {};
+  if(/before bed|bedtime|at night|night|sleep|pm\b/.test(f)) h.slot="night";
+  else if(/morning|breakfast|wake|am\b/.test(f)) h.slot="morning";
+  else if(/lunch|midday|noon|afternoon/.test(f)) h.slot="midday";
+  else if(/dinner|evening/.test(f)) h.slot="evening";
+  if(/empty stomach/.test(f)) h.food="empty stomach";
+  else if(/with (a )?(fatty|fat)/.test(f)) h.food="with fatty meal";
+  else if(/with (food|meal|breakfast|lunch|dinner)/.test(f)) h.food="with food";
+  return h;
+}
+function parseSuppText(text){
+  const frags = text.split(/[\n;•·•]+|,(?![0-9])| and /i).map(t=>t.trim()).filter(t=>t.length>2);
+  const out=[]; const seen=new Set();
+  for(const fr of frags){
+    const d = matchSupp(fr); if(!d || seen.has(d.c)) continue;
+    seen.add(d.c);
+    const hints = timingHints(fr);
+    const dose = extractDose(fr);
+    const existing = SUPP.find(x => norm(x.name).includes(norm(d.c).split(" ")[0]) && (norm(x.name).includes(norm(d.c)) || norm(d.c).includes(norm(x.name).split(" ")[0]) || norm(x.name)===norm(d.c)));
+    let st="new", note="";
+    if(existing){
+      const exDose = norm(existing.dose||"");
+      if(dose && exDose && !exDose.includes(norm(dose).split(" ")[0])){ st="review"; note="differs from your current "+existing.dose; }
+      else { st="have"; note="already in your stack — unchanged"; }
+    }
+    out.push({name:d.c, dose, slot:hints.slot||d.slot, food:hints.food||d.food, carrier:d.carrier, st, note});
+  }
+  return out;
+}
+function statusFor(v, d){
+  const flo = d.flo!=null?d.flo:d.lo, fhi = d.fhi!=null?d.fhi:d.hi;
+  if(v < d.lo) return {cls:"alert", label:"Below range ↓", mi:"low", dir:"below"};
+  if(v > d.hi) return {cls:"alert", label:"Above range ↑", mi:"high", dir:"above"};
+  if(v < flo || v > fhi) return {cls:"warn", label:"Outside optimal", mi:"warn", dir:"in"};
+  return {cls:"ok", label:"In range", mi:"ok", dir:"in"};
+}
+function parseLabText(text){
+  const t = text.replace(/\s+/g," ");
+  const out=[]; const seen=new Set();
+  for(const d of LAB_DICT){
+    if(seen.has(d.c)) continue;
+    for(const al of d.a){
+      const re = new RegExp(al.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"[^0-9<>]{0,40}?(\\d+(?:\\.\\d+)?)","i");
+      const m = t.match(re);
+      if(m){ const v = parseFloat(m[1]); if(isFinite(v) && v>0 && v<100000){ out.push({name:d.c, value:v, unit:d.unit, d, s:statusFor(v,d)}); seen.add(d.c); } break; }
+    }
+  }
+  return out;
+}
+function classifyText(text){
+  const labs = parseLabText(text), supps = parseSuppText(text);
+  const t = norm(text);
+  const labHint = /(ng\/ml|reference range|quest|labcorp|specimen|collected|result)/.test(t);
+  if(labs.length>=2 && (labHint || labs.length>supps.length)) return {type:"labs", labs, supps};
+  return {type:"supps", labs, supps};
+}
+
+/* ---- committing imports ---- */
+function commitSupps(items, src){
+  let added=0;
+  for(const it of items){
+    if(it.st!=="new" || it.skip) continue;
+    STORE.supps.push({
+      id:"u-"+slug(it.name)+"-"+Date.now().toString(36)+added,
+      name:it.name, brand:"Imported · "+src, pill:"+", cat:"Imported",
+      slot:it.slot, food:it.food, carrier:it.carrier, dose:it.dose||"see label",
+      why:[{t:"west", e:"imported", x:"Imported from "+src+". Timing defaults applied from Dosely's knowledge base — tap into Stack to adjust, and confirm doses with your practitioner."}]
+    });
+    added++;
+  }
+  saveStore(STORE); renderAll();
+  return added;
+}
+function commitLabs(items, src){
+  const today = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  let added=0;
+  for(const it of items){
+    if(it.skip) continue;
+    STORE.labs.push({
+      id:"u-lab-"+slug(it.name)+"-"+Date.now().toString(36)+added,
+      name:it.name, val:String(it.value), unit:it.unit, n:it.value,
+      lo:it.d.lo, hi:it.d.hi, flo:(it.d.flo!=null?it.d.flo:it.d.lo), fhi:(it.d.fhi!=null?it.d.fhi:it.d.hi),
+      dir:it.s.dir, date:today+" · "+src,
+      status:{cls:it.s.cls, label:it.s.label},
+      interp:"Imported from "+src+". Standard and commonly-cited functional ranges shown — interpret trends with your practitioner.",
+      linkedSupplementIds:[]
+    });
+    added++;
+  }
+  saveStore(STORE); renderAll();
+  return added;
+}
+
+/* ---- review UI ---- */
+function scanHeader(src){
+  return `<div style="font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:4px 0 8px">Parsed from ${src}</div>`;
+}
+function showLoading(msg){
+  hidePanels();
   $("#scan-idle").style.display="none";
   $("#scan-parsed").classList.remove("show");
   $("#scan-loading").classList.add("show");
-  setTimeout(()=>{
-    $("#scan-loading").classList.remove("show");
-    const p = $("#scan-parsed");
-    p.innerHTML = `
-      <div class="parsed-img">${r.img}<div class="ocr"></div></div>
-      <div style="font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:4px 0 2px">Parsed from ${r.src}</div>
-      <div class="fields">${r.fields.map(f=>`<div class="frow"><span class="fk">${f[0]}</span><span class="fv ${f[2]?'confirm':''}">${f[1]}${f[2]?' ✎':''}</span></div>`).join("")}</div>
-      <div class="confirm-box"><span class="ic">⚠️</span><div><strong>Confirm the units.</strong> We read <b>1000&nbsp;mg</b> — tap to correct if the label says mcg. This is the one field we always double-check.</div></div>
-      <div class="auto-annot">
-        <div class="aa-h">Auto-annotated across traditions</div>
-        <div class="why-row"><span class="mono-mark west">Rx</span><div class="why-text">Fat-soluble polyphenol — take with a fat-containing meal; phytosome form aids absorption.<span class="ev">established</span></div></div>
-        <div class="why-row"><span class="mono-mark ayur">आ</span><div class="why-text">Haridra (turmeric) — warming, kindles agni; classic anupana is warm milk or ghee. Adhobhakta.<span class="ev">traditional</span></div></div>
-        <div class="why-row"><span class="mono-mark tcm">中</span><div class="why-text">Jiang Huang — warming, moves qi and blood; taken with food.<span class="ev">traditional</span></div></div>
-      </div>
-      <button class="btn-primary" id="scan-add">Add to stack</button>
-      <button class="btn-ghost" id="scan-reset">Cancel</button>`;
-    p.classList.add("show");
-    $("#scan-add").addEventListener("click", ()=>{
-      toast("Curcumin added — placed at Midday with your fattiest meal");
-      resetScan();
-      setTimeout(()=>setTab("today"), 900);
-    });
-    $("#scan-reset").addEventListener("click", resetScan);
-  }, 1500);
+  $("#scan-loading p").textContent = msg||"Reading…";
 }
+function showMessage(html){
+  $("#scan-loading").classList.remove("show");
+  const p = $("#scan-parsed");
+  p.innerHTML = html + `<button class="btn-ghost" id="scan-reset">Close</button>`;
+  p.classList.add("show");
+  $("#scan-reset").addEventListener("click", resetScan);
+}
+function reviewSupps(items, src){
+  $("#scan-loading").classList.remove("show");
+  const p = $("#scan-parsed");
+  if(!items.length){ showMessage(`${scanHeader(src)}<div class="mi-note">No supplements recognized. Try a clearer photo or the manual form below — the parser knows ~40 common supplements and is growing.</div>`); return; }
+  const rows = items.map((it,i)=>`
+    <div class="mi-row" data-i="${i}">
+      <span class="mi-badge ${it.st}">${MI_MARK[it.st]}</span>
+      <div class="mi-main"><b>${it.name}</b><span>${[it.dose, it.st==="new" ? (it.slot+" · "+it.food) : it.note].filter(Boolean).join(" · ")}</span></div>
+      ${it.st==="new" ? `<button class="mi-inc on" data-i="${i}" aria-label="include">✓</button>` : `<span class="mi-tag ${it.st}">${MI_TAG[it.st]}</span>`}
+    </div>`).join("");
+  const nNew = items.filter(i=>i.st==="new").length;
+  p.innerHTML = `${scanHeader(src)}
+    <div class="mi-note">${items.length} recognized · checked against your stack. Tap ✓ to exclude an item.</div>
+    <div class="mi-list">${rows}</div>
+    <button class="btn-primary" id="scan-add">Add ${nNew} to stack</button>
+    <button class="btn-ghost" id="scan-reset">Cancel</button>`;
+  p.classList.add("show");
+  p.querySelectorAll(".mi-inc").forEach(b=>b.addEventListener("click",()=>{
+    const it = items[+b.dataset.i]; it.skip = !it.skip;
+    b.classList.toggle("on", !it.skip); b.textContent = it.skip ? "" : "✓";
+    const left = items.filter(x=>x.st==="new"&&!x.skip).length;
+    $("#scan-add").textContent = "Add "+left+" to stack";
+  }));
+  $("#scan-add").addEventListener("click",()=>{
+    const n = commitSupps(items, src);
+    toast(n ? n+" added — scheduled into your day" : "Nothing new to add");
+    resetScan(); if(n) setTimeout(()=>setTab("today"), 800);
+  });
+  $("#scan-reset").addEventListener("click", resetScan);
+}
+function reviewLabs(items, src){
+  $("#scan-loading").classList.remove("show");
+  const p = $("#scan-parsed");
+  if(!items.length){ showMessage(`${scanHeader(src)}<div class="mi-note">No biomarkers recognized in this document. If it's a scanned/photo PDF, add an AI key in ⋯ settings so Dosely can read it visually.</div>`); return; }
+  const biotinSensitive = items.some(it=>/Ferritin|B12|TSH|Free T/.test(it.name));
+  const rows = items.map((it,i)=>`
+    <div class="mi-row">
+      <span class="mi-badge ${it.s.mi}">${MI_MARK[it.s.mi]}</span>
+      <div class="mi-main"><b>${it.name}</b><span>${it.s.label} · std ${it.d.lo}–${it.d.hi} ${it.unit}</span></div>
+      <span class="mi-val">${it.value} ${it.unit}</span>
+    </div>`).join("");
+  p.innerHTML = `${scanHeader(src)}
+    <div class="mi-note">${items.length} biomarkers recognized.</div>
+    <div class="mi-list">${rows}</div>
+    ${biotinSensitive?`<div class="confirm-box"><span class="ic">🧪</span><div><strong>Biotin check.</strong> Some of these use biotin-sensitive assays. If you took biotin within ~72h of the draw, values may read skewed — note it for your practitioner.</div></div>`:""}
+    <button class="btn-primary" id="scan-add">Add ${items.length} to Labs &amp; trends</button>
+    <button class="btn-ghost" id="scan-reset">Cancel</button>`;
+  p.classList.add("show");
+  $("#scan-add").addEventListener("click",()=>{
+    const n = commitLabs(items, src);
+    toast(n+" biomarkers added — trends updated");
+    resetScan(); setTimeout(()=>setTab("labs"), 800);
+  });
+  $("#scan-reset").addEventListener("click", resetScan);
+}
+
+/* ---- PDF ---- */
+async function readPdfText(file){
+  const pdfjs = await import("./vendor/pdf.min.mjs");
+  pdfjs.GlobalWorkerOptions.workerSrc = "./vendor/pdf.worker.min.mjs";
+  const doc = await pdfjs.getDocument({data: await file.arrayBuffer()}).promise;
+  let text="";
+  for(let i=1;i<=Math.min(doc.numPages,12);i++){
+    const pg = await doc.getPage(i);
+    const tc = await pg.getTextContent();
+    text += tc.items.map(it=>it.str).join(" ")+"\n";
+  }
+  return text;
+}
+async function handleDoc(file, bias){
+  showLoading("Reading "+file.name+"…");
+  try{
+    if(file.type==="application/pdf" || /\.pdf$/i.test(file.name)){
+      const text = await readPdfText(file);
+      if(norm(text).length < 40){
+        if(getKey()) return visionParse(file, bias);
+        return showMessage(`${scanHeader(file.name)}<div class="mi-note">This PDF has no text layer (it's a scan). Add an Anthropic API key in ⋯ settings and Dosely can read it visually — or paste the contents as a note.</div>`);
+      }
+      const c = classifyText(text);
+      if(bias==="labs" || (bias!=="supp" && c.type==="labs")) return reviewLabs(c.labs, file.name);
+      return reviewSupps(c.supps.length?c.supps:parseSuppText(text), file.name);
+    }
+    // image file
+    if(getKey()) return visionParse(file, bias);
+    return showMessage(`${scanHeader(file.name)}<div class="mi-note"><strong>Reading photos needs AI vision.</strong> Add your Anthropic API key in ⋯ settings (stored only on this device, sent only to Anthropic) — or use PDF, paste-a-note, barcode, or the manual form, which work offline.</div>
+      <button class="btn-primary" id="open-settings-inline">Open settings</button>`), $("#open-settings-inline")?.addEventListener("click",()=>{resetScan(); openSettings();});
+  }catch(err){
+    showMessage(`${scanHeader(file.name)}<div class="mi-note">Couldn't read that file (${(err&&err.message||err).toString().slice(0,120)}). Try another export, or paste the contents as a note.</div>`);
+  }
+}
+
+/* ---- vision via user's own Anthropic key ---- */
+const KEY_STORE="dosely.apikey";
+function getKey(){ try{ return localStorage.getItem(KEY_STORE)||""; }catch(e){ return ""; } }
+async function fileToDataURL(file, maxW){
+  const img = await createImageBitmap(file);
+  const scale = Math.min(1, (maxW||1400)/img.width);
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(img.width*scale); cv.height = Math.round(img.height*scale);
+  cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+  return cv.toDataURL("image/jpeg", .85);
+}
+async function visionParse(file, bias){
+  showLoading("Asking AI to read "+file.name+"…");
+  try{
+    let mediaType="image/jpeg", b64;
+    if(file.type==="application/pdf"){
+      // send the PDF directly — the API accepts PDFs as document blocks
+      b64 = btoa(new Uint8Array(await file.arrayBuffer()).reduce((a,c)=>a+String.fromCharCode(c),""));
+      mediaType="application/pdf";
+    }else{
+      b64 = (await fileToDataURL(file)).split(",")[1];
+    }
+    const contentBlock = mediaType==="application/pdf"
+      ? {type:"document", source:{type:"base64", media_type:"application/pdf", data:b64}}
+      : {type:"image", source:{type:"base64", media_type:"image/jpeg", data:b64}};
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"content-type":"application/json","x-api-key":getKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-haiku-4-5-20251001", max_tokens:1500, messages:[{role:"user", content:[contentBlock, {type:"text", text:'This is either a supplement label/order/protocol OR a lab report. Return STRICT JSON only, no prose: {"type":"supplements","items":[{"name":"...","dose":"e.g. 500 mg"}]} OR {"type":"labs","items":[{"name":"biomarker","value":12.3,"unit":"ng/mL"}]}. Use canonical short names.'}]}]})
+    });
+    if(!res.ok){ const e=await res.text(); throw new Error("API "+res.status+": "+e.slice(0,140)); }
+    const data = await res.json();
+    const txt = (data.content||[]).map(c=>c.text||"").join("");
+    const j = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("}")+1));
+    if(j.type==="labs" || bias==="labs"){
+      const items=(j.items||[]).map(it=>{
+        const d = LAB_DICT.find(x=>norm(x.c)===norm(it.name)) || LAB_DICT.find(x=>x.a.some(al=>norm(it.name).includes(al)));
+        if(!d || !isFinite(+it.value)) return null;
+        return {name:d.c, value:+it.value, unit:it.unit||d.unit, d, s:statusFor(+it.value,d)};
+      }).filter(Boolean);
+      return reviewLabs(items, file.name);
+    }
+    const items=(j.items||[]).map(it=>{
+      const line = it.name+" "+(it.dose||"");
+      const parsed = parseSuppText(line);
+      if(parsed.length) return Object.assign(parsed[0],{dose:it.dose||parsed[0].dose});
+      return {name:it.name, dose:it.dose||"", slot:"morning", food:"with food", carrier:"with food", st:"new", note:""};
+    });
+    return reviewSupps(items, file.name);
+  }catch(err){
+    showMessage(`${scanHeader(file.name)}<div class="mi-note">AI read failed: ${(err&&err.message||err).toString().slice(0,160)}. Check the key in ⋯ settings, or use PDF/note/manual.</div>`);
+  }
+}
+
+/* ---- barcode via OpenFoodFacts ---- */
+async function lookupUPC(code){
+  showLoading("Looking up UPC "+code+"…");
+  try{
+    const res = await fetch("https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+".json");
+    const j = await res.json();
+    if(j.status!==1 || !j.product) return showMessage(`${scanHeader("UPC "+code)}<div class="mi-note">Not found in the open product database. Supplements coverage is spotty — try the bottle photo (with AI key) or manual form.</div>`);
+    const name = j.product.product_name || "Unknown product";
+    const brand = j.product.brands || "";
+    const parsed = parseSuppText(name+" "+(j.product.generic_name||""));
+    const base = parsed[0] || {name, dose:"", slot:"morning", food:"with food", carrier:"with food", st:"new", note:""};
+    base.name = base.name==="Unknown product" ? name : base.name;
+    if(brand) base.note = brand;
+    return reviewSupps([base], "UPC "+code+(brand?" · "+brand:""));
+  }catch(err){
+    showMessage(`${scanHeader("UPC "+code)}<div class="mi-note">Lookup failed (offline?). The manual form always works.</div>`);
+  }
+}
+
+/* ---- settings ---- */
+function openSettings(){ $("#sheet").classList.add("open"); $("#key-input").value = getKey(); }
+function closeSettings(){ $("#sheet").classList.remove("open"); }
+function hidePanels(){ $$(".io-panel").forEach(x=>x.hidden=true); }
 function resetScan(){
   $("#scan-parsed").classList.remove("show");
   $("#scan-loading").classList.remove("show");
+  hidePanels();
   $("#scan-idle").style.display="block";
 }
 
@@ -1197,11 +1619,61 @@ function setTab(tab){
   $("#ctx-list").innerHTML = c.list.map(i=>`<li>${markHTML(i.m)}<span>${i.t}</span></li>`).join("");
 }
 
+function renderAll(){ rebuildMerged(); renderToday(); renderWeek(); renderStack(); renderLabs(); }
+
 /* ---- init ---- */
 renderToday(); renderWeek(); renderStack(); renderLabs();
 $("#mark-all").addEventListener("click", markAll);
 $$(".navbtn").forEach(b=>b.addEventListener("click", ()=>setTab(b.dataset.tab)));
-$$("[data-scan]").forEach(b=>b.addEventListener("click", ()=>runScan(b.dataset.scan)));
+let docBias = null;
+const togglePanel = id => { const el=$("#"+id); const was=el.hidden; hidePanels(); $("#scan-parsed").classList.remove("show"); $("#scan-idle").style.display="block"; el.hidden=!was; };
+$$("[data-scan]").forEach(b=>b.addEventListener("click", ()=>{
+  const k=b.dataset.scan;
+  if(k==="bottle"||k==="shot"){ docBias="supp"; $("#file-image").click(); }
+  else if(k==="pdf"){ docBias="auto"; $("#file-doc").click(); }
+  else if(k==="labs"){ docBias="labs"; $("#file-doc").click(); }
+  else if(k==="note") togglePanel("note-panel");
+  else if(k==="barcode") togglePanel("upc-panel");
+  else if(k==="fullscript") togglePanel("fs-panel");
+}));
+$("#file-image").addEventListener("change", e=>{ const f=e.target.files[0]; e.target.value=""; if(f) handleDoc(f, docBias); });
+$("#file-doc").addEventListener("change", e=>{ const f=e.target.files[0]; e.target.value=""; if(f) handleDoc(f, docBias); });
+$("#note-parse").addEventListener("click", ()=>{
+  const t=$("#note-text").value.trim(); if(!t) return;
+  hidePanels(); $("#scan-idle").style.display="none";
+  reviewSupps(parseSuppText(t), "your note");
+});
+$("#upc-go").addEventListener("click", ()=>{
+  const c=$("#upc-input").value.replace(/\D/g,""); if(c.length<8){ toast("Enter the full barcode number"); return; }
+  hidePanels(); $("#scan-idle").style.display="none"; lookupUPC(c);
+});
+$("#sample-labs").addEventListener("click", async ()=>{
+  try{
+    const blob = await fetch("sample-labs.pdf").then(r=>r.blob());
+    handleDoc(new File([blob],"sample-labs.pdf",{type:"application/pdf"}), "labs");
+  }catch(e){ toast("Couldn't load the sample"); }
+});
+$("#manual-open").addEventListener("click", ()=>togglePanel("manual-panel"));
+$("#man-add").addEventListener("click", ()=>{
+  const name=$("#man-name").value.trim(); if(!name){ toast("Give it a name"); return; }
+  const line = name+" "+$("#man-dose").value;
+  const parsed = parseSuppText(line);
+  const base = parsed[0] || {name, dose:$("#man-dose").value.trim(), slot:"morning", food:"with food", carrier:"with food", st:"new", note:""};
+  if($("#man-slot").value) base.slot=$("#man-slot").value;
+  if($("#man-food").value) base.food=$("#man-food").value;
+  if(base.st!=="new"){ toast(base.name+" is already in your stack"); return; }
+  base.dose = base.dose || $("#man-dose").value.trim();
+  const n = commitSupps([base], "manual entry");
+  toast(n? base.name+" added — "+base.slot : "Already in your stack");
+  $("#man-name").value=""; $("#man-dose").value=""; hidePanels();
+  if(n) setTimeout(()=>setTab("today"), 700);
+});
+$(".appbar-menu").addEventListener("click", openSettings);
+$("#sheet").addEventListener("click", e=>{ if(e.target.id==="sheet") closeSettings(); });
+$("#sheet-close").addEventListener("click", closeSettings);
+$("#key-save").addEventListener("click", ()=>{ try{ localStorage.setItem(KEY_STORE, $("#key-input").value.trim()); }catch(e){} toast("Key saved on this device"); closeSettings(); });
+$("#key-clear").addEventListener("click", ()=>{ try{ localStorage.removeItem(KEY_STORE); }catch(e){} $("#key-input").value=""; toast("Key removed"); });
+$("#data-clear").addEventListener("click", ()=>{ STORE={supps:[],labs:[]}; saveStore(STORE); renderAll(); toast("Imported items cleared"); closeSettings(); });
 setTab("today");
 </script>
 </body>

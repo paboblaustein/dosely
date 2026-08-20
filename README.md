@@ -18,9 +18,9 @@ This is an **early design prototype**, not a finished app. It runs on a **sample
 - **Week** — the schedule's rhythm at a glance. Iron runs every other day for absorption, so a rest day reads as intentional, not forgotten.
 - **Stack** — everything you take, with **cumulative-dose meters** that add a nutrient up _across bottles_ (the B6 hiding in three products), plus badges tying each item to a lab.
 - **Labs** — bloodwork as a first-class object: tap a marker to light up the supplements it's linked to.
-- **Scan** — how adding a supplement will work: snap a bottle / Amazon screenshot / Fullscript order → confirm what was read → add.
+- **Scan & Import** — _this part is real._ Paste a note ("mag glycinate 400 before bed…") and it parses it; upload a **PDF** (practitioner protocol or a **Quest/Labcorp lab report**) and it extracts supplements or biomarkers right in your browser; look up a **barcode**; or add manually. Imported items actually join your stack and labs, and persist on your device. Photo/screenshot reading works too if you add your own Anthropic API key in ⋯ settings (stored only on-device). Try the built-in sample lab PDF from the Scan tab.
 
-There's no data entry or accounts yet — it's a clickable concept to gather feedback.
+No accounts yet — everything you import lives only in your browser's local storage on your device.
 
 ## 💬 Feedback wanted
 
