@@ -484,7 +484,7 @@
   .safety-strip svg{ width:13px; height:13px; color:var(--ink-faint); display:inline-block; vertical-align:-2px }
   .src-btn .si svg{ width:20px; height:20px; color:var(--brand-deep); display:block }
   .scan-drop .big svg{ width:30px; height:30px; color:var(--brand-deep); display:inline-block }
-  .labs-btn{display:flex; align-items:center; gap:11px; width:100%; padding:13px 14px; margin:2px 0 12px; border-radius:12px; border:1px solid color-mix(in oklab, var(--c-west) 30%, transparent); background:var(--c-west-tint); cursor:pointer; font-family:inherit; color:var(--ink); text-align:left; transition:box-shadow .2s}
+  .labs-btn{display:flex; align-items:center; gap:11px; width:100%; padding:13px 14px; margin:12px 0 10px; border-radius:12px; border:1px solid color-mix(in oklab, var(--c-west) 30%, transparent); background:var(--c-west-tint); cursor:pointer; font-family:inherit; color:var(--ink); text-align:left; transition:box-shadow .2s}
   .labs-btn:hover{box-shadow:var(--shadow)}
   .labs-btn .si svg{width:20px; height:20px; color:var(--c-west); display:block}
   .labs-btn .st{font-weight:600; font-size:13px}
@@ -631,6 +631,10 @@
                   <p>Pause high-dose biotin ~48–72&nbsp;h beforehand — it can skew ferritin, B12 and thyroid immunoassays. Confirm the window with the ordering lab.</p>
                 </div>
               </div>
+              <button class="labs-btn" id="labs-upload"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><line x1="8" y1="15" x2="16" y2="15"/></svg></span><span><span class="st">Upload lab results</span><br><span class="sd">Quest · Labcorp · Function · any PDF or photo</span></span></button>
+              <button class="sample-link" id="sample-labs">No file handy? Run a sample Quest-style PDF →</button>
+              <div class="scanning" id="labs-loading"><p style="font-size:13px;color:var(--ink-soft)">Reading…</p><div class="scanbar"><i></i></div></div>
+              <div class="parsed" id="labs-parsed"></div>
               <div id="labs-list"></div>
             </section>
 
@@ -649,8 +653,8 @@
                 <button class="src-btn" data-scan="barcode"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 V5 a1 1 0 0 1 1 -1 h2 M17 4 h2 a1 1 0 0 1 1 1 v2 M20 17 v2 a1 1 0 0 1 -1 1 h-2 M7 20 H5 a1 1 0 0 1 -1 -1 v-2"/><path d="M7.5 8 v8 M10.5 8 v8 M13.5 8 v8 M16.5 8 v8"/></svg></span><span><span class="st">Scan barcode</span><br><span class="sd">UPC lookup</span></span></button>
                 <button class="src-btn" data-scan="fullscript"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14 a3.5 3.5 0 0 1 0 -5 l2.5 -2.5 a3.5 3.5 0 0 1 5 5 L16 13"/><path d="M14 10 a3.5 3.5 0 0 1 0 5 l-2.5 2.5 a3.5 3.5 0 0 1 -5 -5 L8 11"/></svg></span><span><span class="st">Connect Fullscript</span><br><span class="sd">orders &amp; refills</span></span></button>
               </div>
-              <button class="labs-btn" data-scan="labs"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><line x1="8" y1="15" x2="16" y2="15"/></svg></span><span><span class="st">Upload lab results</span><br><span class="sd">Quest · Labcorp · Function · any PDF or photo</span></span></button>
-              <button class="sample-link" id="sample-labs">No file handy? Run a sample Quest-style PDF →</button>
+              
+              
               <input type="file" id="file-image" accept="image/*" hidden>
               <input type="file" id="file-doc" accept="application/pdf,image/*" hidden>
               <div class="io-panel" id="note-panel" hidden>
@@ -1396,26 +1400,28 @@ function commitLabs(items, src){
 }
 
 /* ---- review UI ---- */
+let IO = {parsed:"#scan-parsed", loading:"#scan-loading", idle:"#scan-idle"};
+function setIO(ctx){ IO = ctx==="labs" ? {parsed:"#labs-parsed", loading:"#labs-loading", idle:null} : {parsed:"#scan-parsed", loading:"#scan-loading", idle:"#scan-idle"}; }
 function scanHeader(src){
   return `<div style="font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:4px 0 8px">Parsed from ${src}</div>`;
 }
 function showLoading(msg){
   hidePanels();
-  $("#scan-idle").style.display="none";
-  $("#scan-parsed").classList.remove("show");
-  $("#scan-loading").classList.add("show");
-  $("#scan-loading p").textContent = msg||"Reading…";
+  if(IO.idle) $(IO.idle).style.display="none";
+  $(IO.parsed).classList.remove("show");
+  $(IO.loading).classList.add("show");
+  $(IO.loading+" p").textContent = msg||"Reading…";
 }
 function showMessage(html){
-  $("#scan-loading").classList.remove("show");
-  const p = $("#scan-parsed");
+  $(IO.loading).classList.remove("show");
+  const p = $(IO.parsed);
   p.innerHTML = html + `<button class="btn-ghost" id="scan-reset">Close</button>`;
   p.classList.add("show");
-  $("#scan-reset").addEventListener("click", resetScan);
+  p.querySelector("#scan-reset").addEventListener("click", resetScan);
 }
 function reviewSupps(items, src){
-  $("#scan-loading").classList.remove("show");
-  const p = $("#scan-parsed");
+  $(IO.loading).classList.remove("show");
+  const p = $(IO.parsed);
   if(!items.length){ showMessage(`${scanHeader(src)}<div class="mi-note">No supplements recognized. Try a clearer photo or the manual form below — the parser knows ~40 common supplements and is growing.</div>`); return; }
   const rows = items.map((it,i)=>`
     <div class="mi-row" data-i="${i}">
@@ -1434,18 +1440,18 @@ function reviewSupps(items, src){
     const it = items[+b.dataset.i]; it.skip = !it.skip;
     b.classList.toggle("on", !it.skip); b.textContent = it.skip ? "" : "✓";
     const left = items.filter(x=>x.st==="new"&&!x.skip).length;
-    $("#scan-add").textContent = "Add "+left+" to stack";
+    p.querySelector("#scan-add").textContent = "Add "+left+" to stack";
   }));
-  $("#scan-add").addEventListener("click",()=>{
+  p.querySelector("#scan-add").addEventListener("click",()=>{
     const n = commitSupps(items, src);
     toast(n ? n+" added — scheduled into your day" : "Nothing new to add");
     resetScan(); if(n) setTimeout(()=>setTab("today"), 800);
   });
-  $("#scan-reset").addEventListener("click", resetScan);
+  p.querySelector("#scan-reset").addEventListener("click", resetScan);
 }
 function reviewLabs(items, src){
-  $("#scan-loading").classList.remove("show");
-  const p = $("#scan-parsed");
+  $(IO.loading).classList.remove("show");
+  const p = $(IO.parsed);
   if(!items.length){ showMessage(`${scanHeader(src)}<div class="mi-note">No biomarkers recognized in this document. If it's a scanned/photo PDF, add an AI key in ⋯ settings so Dosely can read it visually.</div>`); return; }
   const biotinSensitive = items.some(it=>/Ferritin|B12|TSH|Free T/.test(it.name));
   const rows = items.map((it,i)=>`
@@ -1461,12 +1467,12 @@ function reviewLabs(items, src){
     <button class="btn-primary" id="scan-add">Add ${items.length} to Labs &amp; trends</button>
     <button class="btn-ghost" id="scan-reset">Cancel</button>`;
   p.classList.add("show");
-  $("#scan-add").addEventListener("click",()=>{
+  p.querySelector("#scan-add").addEventListener("click",()=>{
     const n = commitLabs(items, src);
     toast(n+" biomarkers added — trends updated");
     resetScan(); setTimeout(()=>setTab("labs"), 800);
   });
-  $("#scan-reset").addEventListener("click", resetScan);
+  p.querySelector("#scan-reset").addEventListener("click", resetScan);
 }
 
 /* ---- PDF ---- */
@@ -1582,8 +1588,8 @@ function openSettings(){ $("#sheet").classList.add("open"); $("#key-input").valu
 function closeSettings(){ $("#sheet").classList.remove("open"); }
 function hidePanels(){ $$(".io-panel").forEach(x=>x.hidden=true); }
 function resetScan(){
-  $("#scan-parsed").classList.remove("show");
-  $("#scan-loading").classList.remove("show");
+  ["#scan-parsed","#labs-parsed"].forEach(x=>{const el=$(x); if(el) el.classList.remove("show");});
+  ["#scan-loading","#labs-loading"].forEach(x=>{const el=$(x); if(el) el.classList.remove("show");});
   hidePanels();
   $("#scan-idle").style.display="block";
 }
@@ -1629,9 +1635,9 @@ let docBias = null;
 const togglePanel = id => { const el=$("#"+id); const was=el.hidden; hidePanels(); $("#scan-parsed").classList.remove("show"); $("#scan-idle").style.display="block"; el.hidden=!was; };
 $$("[data-scan]").forEach(b=>b.addEventListener("click", ()=>{
   const k=b.dataset.scan;
+  setIO("scan");
   if(k==="bottle"||k==="shot"){ docBias="supp"; $("#file-image").click(); }
   else if(k==="pdf"){ docBias="auto"; $("#file-doc").click(); }
-  else if(k==="labs"){ docBias="labs"; $("#file-doc").click(); }
   else if(k==="note") togglePanel("note-panel");
   else if(k==="barcode") togglePanel("upc-panel");
   else if(k==="fullscript") togglePanel("fs-panel");
@@ -1647,8 +1653,10 @@ $("#upc-go").addEventListener("click", ()=>{
   const c=$("#upc-input").value.replace(/\D/g,""); if(c.length<8){ toast("Enter the full barcode number"); return; }
   hidePanels(); $("#scan-idle").style.display="none"; lookupUPC(c);
 });
+$("#labs-upload").addEventListener("click", ()=>{ setIO("labs"); docBias="labs"; $("#file-doc").click(); });
 $("#sample-labs").addEventListener("click", async ()=>{
   try{
+    setIO("labs");
     const blob = await fetch("sample-labs.pdf").then(r=>r.blob());
     handleDoc(new File([blob],"sample-labs.pdf",{type:"application/pdf"}), "labs");
   }catch(e){ toast("Couldn't load the sample"); }
