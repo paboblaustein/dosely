@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#e8e3d7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#17190f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f1f0ed" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0e0d" media="(prefers-color-scheme: dark)">
 <meta name="description" content="Sundial — an integrative supplement protocol maker and tracker. Early prototype with sample data.">
 <meta property="og:title" content="Sundial">
 <meta property="og:description" content="An integrative supplement protocol maker & tracker — take the right thing, at the right time, the right way.">
@@ -12,19 +12,19 @@
 <style>
   /* ============================ TOKENS ============================ */
   :root{
-    --paper:#e8e3d7; --surface:#f4f0e7; --surface-2:#fbf9f2; --sunk:#e0dacb;
-    --ink:#26291f; --ink-soft:#5c6050; --ink-faint:#8a8b78; --line:#d5cebd;
-    --brand:#55613f; --brand-deep:#3f4a2d; --brand-tint:#e5e6d5;
-    /* tradition accents — drawn from each tradition's own materials */
-    --c-west:#2c5470; --c-west-tint:#dbe6ee;   /* clinical ink blue */
-    --c-tcm:#a8452a;  --c-tcm-tint:#f0dfd7;     /* cinnabar (朱砂) */
-    --c-ayur:#9c761c; --c-ayur-tint:#eee2c4;    /* turmeric (हल्दी) */
+    --paper:#f1f0ed; --surface:#f6f5f3; --surface-2:#fcfcfb; --sunk:#e7e6e2;
+    --ink:#191a18; --ink-soft:#50514d; --ink-faint:#8e8e89; --line:#dddcd7;
+    --brand:#33342f; --brand-deep:#1c1d1a; --brand-tint:#e9e9e5;
+    /* tradition accents — muted to whispers on the monochrome ground */
+    --c-west:#4a5c68; --c-west-tint:#e5e9eb;   /* ink blue, greyed */
+    --c-tcm:#8a5546;  --c-tcm-tint:#ede4e0;     /* cinnabar, greyed */
+    --c-ayur:#85713d; --c-ayur-tint:#ebe7dc;    /* turmeric, greyed */
     /* semantic — lab status, kept distinct in role (stripes/dots) */
-    --s-ok:#5e6e3c; --s-ok-tint:#e2e6cf;
-    --s-alert:#b4532e; --s-alert-tint:#f2ded3;
-    --s-warn:#a9781f; --s-warn-tint:#f0e5c9;
-    --shadow: 0 1px 2px rgba(38,41,31,.06), 0 8px 24px rgba(38,41,31,.08);
-    --shadow-lift: 0 2px 6px rgba(38,41,31,.10), 0 18px 48px rgba(38,41,31,.16);
+    --s-ok:#5b6150; --s-ok-tint:#e6e7e0;
+    --s-alert:#96503f; --s-alert-tint:#eee1dd;
+    --s-warn:#8c7139; --s-warn-tint:#ebe5d6;
+    --shadow: 0 1px 2px rgba(20,20,18,.05), 0 8px 24px rgba(20,20,18,.07);
+    --shadow-lift: 0 2px 6px rgba(20,20,18,.09), 0 18px 48px rgba(20,20,18,.14);
     --r:16px; --r-sm:10px;
     --serif: ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
     --sans: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -32,38 +32,38 @@
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --paper:#17190f; --surface:#20221a; --surface-2:#282b21; --sunk:#141610;
-      --ink:#eae5d6; --ink-soft:#a6a591; --ink-faint:#7c7c68; --line:#33362b;
-      --brand:#93a06e; --brand-deep:#b6c191; --brand-tint:#2a2f1f;
-      --c-west:#7fb0d0; --c-west-tint:#1e2c36;
-      --c-tcm:#e08a68; --c-tcm-tint:#33211a;
-      --c-ayur:#d6ab48; --c-ayur-tint:#31280f;
-      --s-ok:#a3b573; --s-ok-tint:#242a17;
-      --s-alert:#e2895f; --s-alert-tint:#32201a;
-      --s-warn:#d3a94e; --s-warn-tint:#2e2712;
+      --paper:#0e0e0d; --surface:#161615; --surface-2:#1d1d1c; --sunk:#090909;
+      --ink:#ebebe8; --ink-soft:#a4a4a0; --ink-faint:#747470; --line:#2d2d2b;
+      --brand:#d6d6d1; --brand-deep:#ececea; --brand-tint:#262624;
+      --c-west:#93a6b2; --c-west-tint:#1f262b;
+      --c-tcm:#c09082; --c-tcm-tint:#2a201c;
+      --c-ayur:#b8a068; --c-ayur-tint:#272215;
+      --s-ok:#a8ad9b; --s-ok-tint:#222420;
+      --s-alert:#cd8b74; --s-alert-tint:#2b1f1b;
+      --s-warn:#bda265; --s-warn-tint:#282212;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.5);
       --shadow-lift: 0 2px 8px rgba(0,0,0,.5), 0 22px 60px rgba(0,0,0,.6);
     }
   }
   :root[data-theme="light"]{
-    --paper:#e8e3d7; --surface:#f4f0e7; --surface-2:#fbf9f2; --sunk:#e0dacb;
-    --ink:#26291f; --ink-soft:#5c6050; --ink-faint:#8a8b78; --line:#d5cebd;
-    --brand:#55613f; --brand-deep:#3f4a2d; --brand-tint:#e5e6d5;
-    --c-west:#2c5470; --c-west-tint:#dbe6ee; --c-tcm:#a8452a; --c-tcm-tint:#f0dfd7;
-    --c-ayur:#9c761c; --c-ayur-tint:#eee2c4;
-    --s-ok:#5e6e3c; --s-ok-tint:#e2e6cf; --s-alert:#b4532e; --s-alert-tint:#f2ded3;
-    --s-warn:#a9781f; --s-warn-tint:#f0e5c9;
-    --shadow: 0 1px 2px rgba(38,41,31,.06), 0 8px 24px rgba(38,41,31,.08);
-    --shadow-lift: 0 2px 6px rgba(38,41,31,.10), 0 18px 48px rgba(38,41,31,.16);
+    --paper:#f1f0ed; --surface:#f6f5f3; --surface-2:#fcfcfb; --sunk:#e7e6e2;
+    --ink:#191a18; --ink-soft:#50514d; --ink-faint:#8e8e89; --line:#dddcd7;
+    --brand:#33342f; --brand-deep:#1c1d1a; --brand-tint:#e9e9e5;
+    --c-west:#4a5c68; --c-west-tint:#e5e9eb; --c-tcm:#8a5546; --c-tcm-tint:#ede4e0;
+    --c-ayur:#85713d; --c-ayur-tint:#ebe7dc;
+    --s-ok:#5b6150; --s-ok-tint:#e6e7e0; --s-alert:#96503f; --s-alert-tint:#eee1dd;
+    --s-warn:#8c7139; --s-warn-tint:#ebe5d6;
+    --shadow: 0 1px 2px rgba(20,20,18,.05), 0 8px 24px rgba(20,20,18,.07);
+    --shadow-lift: 0 2px 6px rgba(20,20,18,.09), 0 18px 48px rgba(20,20,18,.14);
   }
   :root[data-theme="dark"]{
-    --paper:#17190f; --surface:#20221a; --surface-2:#282b21; --sunk:#141610;
-    --ink:#eae5d6; --ink-soft:#a6a591; --ink-faint:#7c7c68; --line:#33362b;
-    --brand:#93a06e; --brand-deep:#b6c191; --brand-tint:#2a2f1f;
-    --c-west:#7fb0d0; --c-west-tint:#1e2c36; --c-tcm:#e08a68; --c-tcm-tint:#33211a;
-    --c-ayur:#d6ab48; --c-ayur-tint:#31280f;
-    --s-ok:#a3b573; --s-ok-tint:#242a17; --s-alert:#e2895f; --s-alert-tint:#32201a;
-    --s-warn:#d3a94e; --s-warn-tint:#2e2712;
+    --paper:#0e0e0d; --surface:#161615; --surface-2:#1d1d1c; --sunk:#090909;
+    --ink:#ebebe8; --ink-soft:#a4a4a0; --ink-faint:#747470; --line:#2d2d2b;
+    --brand:#d6d6d1; --brand-deep:#ececea; --brand-tint:#262624;
+    --c-west:#93a6b2; --c-west-tint:#1f262b; --c-tcm:#c09082; --c-tcm-tint:#2a201c;
+    --c-ayur:#b8a068; --c-ayur-tint:#272215;
+    --s-ok:#a8ad9b; --s-ok-tint:#222420; --s-alert:#cd8b74; --s-alert-tint:#2b1f1b;
+    --s-warn:#bda265; --s-warn-tint:#282212;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.5);
     --shadow-lift: 0 2px 8px rgba(0,0,0,.5), 0 22px 60px rgba(0,0,0,.6);
   }
@@ -215,8 +215,8 @@
   .dose.taken{opacity:.55}
   .dose.taken .check{background:var(--brand);border-color:var(--brand)}
   .dose.taken .check::after{border-color:#fff}
-  :root[data-theme="dark"] .dose.taken .check::after{border-color:#17190f}
-  @media (prefers-color-scheme:dark){ .dose.taken .check::after{border-color:#17190f} }
+  :root[data-theme="dark"] .dose.taken .check::after{border-color:#141412}
+  @media (prefers-color-scheme:dark){ .dose.taken .check::after{border-color:#141412} }
   .dose.taken .dose-name{text-decoration:line-through; text-decoration-color:var(--ink-faint)}
   .tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:0}
   .tag{font-size:11px; padding:3px 8px; border-radius:7px; display:inline-flex; align-items:center; gap:5px; letter-spacing:.01em; border:1px solid transparent}
@@ -343,8 +343,8 @@
   .auto-annot{background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin:12px 0}
   .auto-annot .aa-h{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px}
   .btn-primary{width:100%; background:var(--brand); color:#fff; border:none; border-radius:12px; padding:13px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px; box-shadow:var(--shadow); transition:transform .12s, filter .2s}
-  :root[data-theme="dark"] .btn-primary{color:#17190f}
-  @media (prefers-color-scheme:dark){ .btn-primary{color:#17190f} }
+  :root[data-theme="dark"] .btn-primary{color:#141412}
+  @media (prefers-color-scheme:dark){ .btn-primary{color:#141412} }
   .btn-primary:hover{filter:brightness(1.05)}
   .btn-primary:active{transform:translateY(1px)}
   .btn-ghost{width:100%; background:transparent; color:var(--ink-soft); border:1px solid var(--line); border-radius:12px; padding:11px; font-family:inherit; font-size:12.5px; cursor:pointer; margin-top:8px}
