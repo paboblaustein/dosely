@@ -1,12 +1,12 @@
-# ☀️ Sundial
+# Protocol
 
-**An integrative supplement _protocol maker & tracker_ — like an integrative doctor in your pocket.**
+**Supplements, timed right — like an integrative doctor in your pocket.**
 
-Sundial turns a supplement stack into an optimal daily **protocol** — _what_ to take, _when_, with which _carrier_, and _how often_ — by blending Western absorption science, the Traditional Chinese Medicine organ clock, and Ayurvedic guidance, reconciled against your lab work. Then it tracks it.
+Protocol turns a supplement stack into an optimal daily plan — _what_ to take, _when_, with which _carrier_, and _how often_ — by blending Western absorption science, the Traditional Chinese Medicine organ clock, and Ayurvedic guidance, reconciled against your lab work. Then it tracks it.
 
-### 👉 Try the beta: **https://paboblaustein.github.io/sundial/**
+### 👉 Try the beta: **https://paboblaustein.github.io/protocol/**
 
-Open it on your phone (or resize your browser narrow) — it's built mobile-first.
+Open it on your phone — then **Share → Add to Home Screen** to install it like an app (it launches full-screen with its own icon).
 
 ---
 
@@ -14,7 +14,7 @@ Open it on your phone (or resize your browser narrow) — it's built mobile-firs
 
 This is an **early design prototype**, not a finished app. It runs on a **sample stack and sample labs** so you can feel the core experience:
 
-- **Today** — your stack solved into Morning / Midday / Evening / Night. Each dose shows exactly _how_ to take it (empty stomach, with a fatty meal, warm milk before bed…). Check things off as you go, or tap **Take all**.
+- **Today** — your stack solved into Morning / Midday / Evening / Night, showing only what's actually due (cyclical items rest on their off-days). Each dose shows exactly _how_ to take it. Check things off, or tap **Take all**.
 - **Week** — the schedule's rhythm at a glance. Iron runs every other day for absorption, so a rest day reads as intentional, not forgotten.
 - **Stack** — everything you take, with **cumulative-dose meters** that add a nutrient up _across bottles_ (the B6 hiding in three products), plus badges tying each item to a lab.
 - **Labs** — bloodwork as a first-class object: tap a marker to light up the supplements it's linked to.
@@ -31,6 +31,6 @@ Poke around and tell me:
 
 ## ⚠️ Important
 
-Sundial organizes information and cites public sources — it is **not medical advice** and does not diagnose or prescribe. Evidence is labeled _established / emerging / traditional_, and the "functional" lab ranges shown are commonly cited in integrative practice, not universal medical consensus. Always confirm supplement and dose decisions with your own licensed practitioner.
+Protocol organizes information and cites public sources — it is **not medical advice** and does not diagnose or prescribe. Evidence is labeled _established / emerging / traditional_, and the "functional" lab ranges shown are commonly cited in integrative practice, not universal medical consensus. Always confirm supplement and dose decisions with your own licensed practitioner.
 
 _Sample data, for demonstration. A personal work-in-progress — © 2026._
