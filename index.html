@@ -1365,7 +1365,7 @@ function parseSuppText(text){
   for(let i=0;i<lines.length;i++){
     const ln = lines[i];
     const tm = ln.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-    if(tm){ let h=(+tm[1])%12; if(/pm/i.test(tm[3])) h+=12; ctxSlot=hourToSlot(h); ctxTime=h*60+(+tm[2]); }
+    if(tm){ let h=(+tm[1])%12; if(/pm/i.test(tm[3])) h+=12; ctxSlot=hourToSlot(h); ctxTime=h*60+(+tm[2]); ctxFood=null; }
     if(/empty stomach|fasted/i.test(ln)) ctxFood="empty stomach";
     else if(/real fat|fatty/i.test(ln)) ctxFood="with fatty meal";
     else if(/\bmeal\b|with food|break your fast|breakfast|lunch|dinner/i.test(ln)) ctxFood="with food";
@@ -1380,7 +1380,7 @@ function parseSuppText(text){
     // dose: this line, or the next line if it isn't itself a product
     let dose = extractDose(ln);
     if(!dose && lines[i+1] && !matchSupp(lines[i+1]) && !genericProduct(lines[i+1]) && !RX_RE.test(lines[i+1])) dose = extractDose(lines[i+1]);
-    if(!dict && !isRx && !dose) continue;   // unknown name with no dose anywhere near it -> probably not a product
+    if(!dose && (isRx || !dict)) continue;   // unknown or Rx names need an explicit dose nearby -> otherwise it's a header, not a product
     seen.add(seenKey);
     const hints = timingHints(ln);
     if(isRx){
@@ -1412,13 +1412,19 @@ function statusFor(v, d){
   if(v < flo || v > fhi) return {cls:"warn", label:"Outside optimal", mi:"warn", dir:"in"};
   return {cls:"ok", label:"In range", mi:"ok", dir:"in"};
 }
+function unitPattern(u){
+  // tolerate µ/u swaps and spacing: "µmol/L" matches "umol/L", "%" stays "%"
+  return u.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/µ/g,"[µu]").replace(/\//g,"\\s*/\\s*");
+}
 function parseLabText(text){
   const t = text.replace(/\s+/g," ");
   const out=[]; const seen=new Set();
   for(const d of LAB_DICT){
     if(seen.has(d.c)) continue;
     for(const al of d.a){
-      const re = new RegExp(al.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"[^0-9<>]{0,40}?(\\d+(?:\\.\\d+)?)","i");
+      const alEsc = al.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+      // alias at a word boundary, a value, and THIS biomarker's own unit within ~24 chars after it
+      const re = new RegExp(alEsc+"\\b[^0-9<>]{0,40}?(\\d+(?:\\.\\d+)?)(?=[\\d\\s.,<>–-]{0,24}(?:"+unitPattern(d.unit)+"))","i");
       const m = t.match(re);
       if(m){ const v = parseFloat(m[1]); if(isFinite(v) && v>0 && v<100000){ out.push({name:d.c, value:v, unit:d.unit, d, s:statusFor(v,d)}); seen.add(d.c); } break; }
     }
@@ -1617,14 +1623,18 @@ async function handleDoc(file, bias){
   showLoading("Reading "+file.name+"…");
   try{
     if(file.type==="application/pdf" || /\.pdf$/i.test(file.name)){
-      const text = await readPdfText(file);
+      let text = await readPdfText(file);
       if(norm(text).length < 40){
         if(getKey()) return visionParse(file, bias);
         return showMessage(`${scanHeader(file.name)}<div class="mi-note">This PDF has no text layer (it's a scan). Add an Anthropic API key in ⋯ settings and Dosely can read it visually — or paste the contents as a note.</div>`);
       }
+      let dayNote = "";
+      const nextDay = text.search(/\bDAY\s+(?:[2-9]|\d{2,})\b/i);
+      if(nextDay > 200){ text = text.slice(0, nextDay); dayNote = " · multi-day plan — imported Day 1's schedule"; }
       const c = classifyText(text);
-      if(bias==="labs" || (bias!=="supp" && c.type==="labs")) return reviewLabs(c.labs, file.name);
-      return reviewSupps(c.supps.length?c.supps:parseSuppText(text), file.name);
+      if(c.type==="labs" && bias!=="supp") return reviewLabs(c.labs, file.name);
+      if(bias==="labs"){ toast("That reads as a protocol, not a lab report — showing its supplements"); }
+      return reviewSupps(c.supps.length?c.supps:parseSuppText(text), file.name + dayNote);
     }
     // image file
     if(getKey()) return visionParse(file, bias);
