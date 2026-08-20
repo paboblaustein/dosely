@@ -528,8 +528,11 @@
   .sheet .io-2col{margin-top:12px}
   .sheet-div{height:1px; background:var(--line); margin:14px 0}
   .btn-ghost.danger{color:var(--s-alert); border-color:color-mix(in oklab, var(--s-alert) 35%, transparent)}
+  .btn-replace{width:100%; background:transparent; color:var(--ink); border:1.5px solid var(--ink); border-radius:12px; padding:12px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer; margin-top:8px}
+  .btn-replace:hover{background:var(--brand-tint)}
   .sample-link{background:none; border:none; font-family:inherit; font-size:11.5px; color:var(--c-west); cursor:pointer; padding:0; margin:-6px 0 12px 2px; text-align:left; display:block}
   .sample-link:hover{text-decoration:underline}
+  .pane.dropping{outline:2px dashed var(--brand); outline-offset:-8px; border-radius:18px}
   @media (max-width:600px){ .sheet{position:fixed} }
 </style>
 </head>
@@ -715,7 +718,15 @@
                 <button class="btn-ghost" id="key-clear">Remove key</button>
               </div>
               <div class="sheet-div"></div>
-              <button class="btn-ghost danger" id="data-clear">Clear all imported items &amp; labs</button>
+              <div class="sheet-h" style="font-size:16px">Reminders</div>
+              <div class="io-hint" style="margin:0 0 10px">Each dose round can ping your phone at its time (7:00 · 12:30 · 6:30 · 9:30).</div>
+              <div class="io-2col">
+                <button class="btn-primary" id="alerts-enable">Enable alerts</button>
+                <button class="btn-ghost" id="ics-download">Calendar file</button>
+              </div>
+              <div class="io-hint" id="alerts-status" style="margin-top:8px">In the iPhone app, alerts fire in the background. On the web, they fire while Dosely is open — or add the calendar file to Apple/Google Calendar for system-level alerts anywhere.</div>
+              <div class="sheet-div"></div>
+              <button class="btn-ghost danger" id="data-clear">Clear imports &amp; restore sample protocol</button>
               <button class="btn-ghost" id="sheet-close">Close</button>
             </div>
           </div>
@@ -851,12 +862,13 @@ const BIO_BASE = [
 
 /* ---- persistence: imported items live in localStorage and merge with the sample data ---- */
 const STORE_KEY = "dosely.v1";
-function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {supps:[],labs:[]}; }catch(e){ return {supps:[],labs:[]}; } }
+function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {supps:[],labs:[],hideBase:false}; }catch(e){ return {supps:[],labs:[],hideBase:false}; } }
 function saveStore(st){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(st)); }catch(e){} }
 let STORE = loadStore();
-let SUPP = SUPP_BASE.concat(STORE.supps||[]);
+function baseSupps(){ return STORE.hideBase ? [] : SUPP_BASE; }
+let SUPP = baseSupps().concat(STORE.supps||[]);
 let BIO  = BIO_BASE.concat(STORE.labs||[]);
-function rebuildMerged(){ SUPP = SUPP_BASE.concat(STORE.supps||[]); BIO = BIO_BASE.concat(STORE.labs||[]); }
+function rebuildMerged(){ SUPP = baseSupps().concat(STORE.supps||[]); BIO = BIO_BASE.concat(STORE.labs||[]); }
 
 const CUMULATIVE = [
   {nutrient:"Vitamin B6", cur:27, max:100, unit:"mg", pct:27, sources:"B-Complex 25 mg + Multivitamin 2 mg",
@@ -1085,10 +1097,11 @@ function renderToday(){
     wrap.appendChild(head); wrap.appendChild(body);
     host.appendChild(wrap);
   });
-  if(RESTING.length){
+  const restingPresent = RESTING.filter(r=>SUPP.some(x=>x.id===r.id));
+  if(restingPresent.length){
     const nt = el("div","not-today");
     nt.innerHTML = `<div class="nt-head">Not scheduled today <span>· in your plan</span></div>` +
-      RESTING.map(r=>{ const s=SUPP.find(x=>x.id===r.id); return `
+      restingPresent.map(r=>{ const s=SUPP.find(x=>x.id===r.id); return `
         <div class="nt-item"><span class="nt-pill">${icon(s.id)||s.pill}</span><div class="nt-body"><div class="nt-name">${s.name}</div><div class="nt-note">${r.note}</div></div></div>`; }).join("") +
       `<button class="nt-link" id="nt-week">See the week →</button>`;
     host.appendChild(nt);
@@ -1097,11 +1110,12 @@ function renderToday(){
   updateProgress();
 }
 
-function dayLoad(i){ const daily = SUPP.filter(x=>!RESTING_TODAY.has(x.id)).length; const cyc = WEEK.rows.filter(r=>r.sub!=="every day" && r.pattern[i]).length; return daily + cyc; }
+function weekRows(){ return STORE.hideBase ? [WEEK.rows[0]] : WEEK.rows; }
+function dayLoad(i){ const daily = SUPP.filter(x=>!RESTING_TODAY.has(x.id) || STORE.hideBase).length; const cyc = weekRows().filter(r=>r.sub!=="every day" && r.pattern[i]).length; return daily + cyc; }
 
 function weekDetail(i){
   const d = WEEK.days[i];
-  const cyc = WEEK.rows.filter(r=>r.sub!=="every day" && r.pattern[i]).map(r=>r.label);
+  const cyc = weekRows().filter(r=>r.sub!=="every day" && r.pattern[i]).map(r=>r.label);
   const dd = $("#week-detail");
   dd.innerHTML = cyc.length
     ? `<b>${d.d}, Jul ${d.n}</b> — ${dayLoad(i)} items. Cyclical doses due: <b>${cyc.join(" + ")}</b>.`
@@ -1116,7 +1130,7 @@ function renderWeek(){
     html += `<div class="wg-cell wg-day ${d.today?'today-col wg-today':''}" data-idx="${i}">
       <span class="wg-dow">${d.d}</span><span class="wg-date">${d.n}</span><span class="wg-cnt">${dayLoad(i)}</span></div>`;
   });
-  WEEK.rows.forEach(r=>{
+  weekRows().forEach(r=>{
     html += `<div class="wg-cell wg-label"><span class="wg-pill">${icon(r.pill)||r.pill}</span><span class="wg-lname">${r.label}<em>${r.sub}</em></span></div>`;
     r.pattern.forEach((on,i)=>{
       html += `<div class="wg-cell wg-dotcell ${days[i].today?'today-col':''}" data-idx="${i}"><span class="wg-dot ${on?'on':'off'}"></span></div>`;
@@ -1133,6 +1147,10 @@ function renderWeek(){
 
 function renderCumulative(){
   const host = $("#cumulative");
+  if(STORE.hideBase){
+    host.innerHTML = `<h3>Cumulative dose</h3><p class="csub">Meters build as Dosely learns the labeled nutrient amounts in your imported protocol — coming as imports get richer.</p>`;
+    return;
+  }
   host.innerHTML = `<h3>Cumulative dose</h3><p class="csub">Summed across every product in your stack — checked against upper limits.</p>` +
     CUMULATIVE.map(c=>`
       <div class="meter">
@@ -1302,8 +1320,8 @@ function matchSupp(fragment){
   return best && best.d;
 }
 function extractDose(fragment){
-  const m = fragment.match(/(\d+(?:[.,]\d+)?)\s*(mg|mcg|µg|iu|g|billion|cfu|ml|drops?|caps?(?:ules)?|softgels?|tablets?)/i);
-  return m ? (m[1]+" "+m[2].toLowerCase()) : "";
+  const m = fragment.match(/(\d+\s*\/\s*\d+|\d+(?:[.,]\d+)?)\s*(mg|mcg|µg|iu|g\b|billion|cfu|ml|tsp|teaspoons?|tablespoons?|tbsp|pumps?|drops?|capsules?|caps?\b|softgels?|tablets?|servings?|scoops?)/i);
+  return m ? (m[1].replace(/\s+/g,"")+" "+m[2].toLowerCase()) : "";
 }
 function timingHints(fragment){
   const f = norm(fragment); const h = {};
@@ -1316,22 +1334,65 @@ function timingHints(fragment){
   else if(/with (food|meal|breakfast|lunch|dinner)/.test(f)) h.food="with food";
   return h;
 }
+const RX_RE = /\b(itraconazole|fluconazole|ketoconazole|nystatin|doxycycline|amoxicillin|metronidazole|azithromycin|levothyroxine|synthroid|armour|warfarin|metformin|prednisone|naltrexone|ldn|semaglutide)\b/i;
+const HEADER_RE = /^(day|month|week|time\b|what\b|note\b|meal\b|breakfast|lunch|dinner|fasted|empty|hold\b|wait\b|before\b|after\b|with\b|take\b|in\b|the\b|refrigerat|confirm|protocol|exactly|nothing|stomach|include|liquids?\b|binder sequence|reduced|both\b|every\b|one\b|doses?\b|clock|where|if\b|not\b|am\b|pm\b|full\b|needs?\b|keep\b|do\b|\d)/i;
+function genericProduct(ln){
+  const t = ln.trim().replace(/\s{2,}/g," ");
+  if(t.length<3 || t.length>40) return null;
+  if(HEADER_RE.test(t)) return null;
+  const words = t.split(/\s+/);
+  if(words.length>5) return null;
+  // reject multi-word ALL-CAPS section headers ("FASTED BLOCK", "MEAL 1 ...")
+  if(words.length>1 && t===t.toUpperCase() && !RX_RE.test(t)) return null;
+  if(!/[A-Za-z]{3}/.test(t)) return null;
+  const capish = words.filter(w=>/^[A-Z0-9]/.test(w)).length;
+  if(capish < Math.ceil(words.length*0.6)) return null;
+  if(/[.!?]$/.test(t) && !/\+$/.test(t)) return null;
+  return t;
+}
+function hourToSlot(h){ return h<10.5 ? "morning" : h<15 ? "midday" : h<20 ? "evening" : "night"; }
 function parseSuppText(text){
-  const frags = text.split(/[\n;•·•]+|,(?![0-9])| and /i).map(t=>t.trim()).filter(t=>t.length>2);
+  const lines = text.split(/\n+/).flatMap(l=>l.split(/[;•]+|,(?![0-9])| and /i)).map(t=>t.trim()).filter(t=>t.length>1);
   const out=[]; const seen=new Set();
-  for(const fr of frags){
-    const d = matchSupp(fr); if(!d || seen.has(d.c)) continue;
-    seen.add(d.c);
-    const hints = timingHints(fr);
-    const dose = extractDose(fr);
-    const existing = SUPP.find(x => norm(x.name).includes(norm(d.c).split(" ")[0]) && (norm(x.name).includes(norm(d.c)) || norm(d.c).includes(norm(x.name).split(" ")[0]) || norm(x.name)===norm(d.c)));
+  let ctxSlot=null, ctxFood=null;
+  for(let i=0;i<lines.length;i++){
+    const ln = lines[i];
+    const tm = ln.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if(tm){ let h=(+tm[1])%12; if(/pm/i.test(tm[3])) h+=12; ctxSlot=hourToSlot(h); }
+    if(/empty stomach|fasted/i.test(ln)) ctxFood="empty stomach";
+    else if(/real fat|fatty/i.test(ln)) ctxFood="with fatty meal";
+    else if(/\bmeal\b|with food|break your fast|breakfast|lunch|dinner/i.test(ln)) ctxFood="with food";
+    const isRx = RX_RE.test(ln);
+    const d = isRx ? null : matchSupp(ln);
+    let name=null, dict=null;
+    if(d){ name=d.c; dict=d; }
+    else if(isRx){ const m=ln.match(RX_RE); name=m[0][0].toUpperCase()+m[0].slice(1).toLowerCase(); }
+    else { const g=genericProduct(ln); if(g) name=g; }
+    if(!name || seen.has(norm(name))) continue;
+    // dose: this line, or the next line if it isn't itself a product
+    let dose = extractDose(ln);
+    if(!dose && lines[i+1] && !matchSupp(lines[i+1]) && !genericProduct(lines[i+1]) && !RX_RE.test(lines[i+1])) dose = extractDose(lines[i+1]);
+    if(!dict && !isRx && !dose) continue;   // unknown name with no dose anywhere near it -> probably not a product
+    seen.add(norm(name));
+    const hints = timingHints(ln);
+    if(isRx){
+      out.push({name, dose, slot:hints.slot||ctxSlot||"morning", food:hints.food||ctxFood||"with food", carrier:"as prescribed",
+                st:"review", note:"prescription — keep with your prescriber's plan"});
+      continue;
+    }
+    const nn = norm(name);
+    const existing = SUPP.find(x => { const xn = norm(x.name); return xn===nn || xn.includes(nn) || nn.includes(xn); });
     let st="new", note="";
     if(existing){
       const exDose = norm(existing.dose||"");
       if(dose && exDose && !exDose.includes(norm(dose).split(" ")[0])){ st="review"; note="differs from your current "+existing.dose; }
       else { st="have"; note="already in your stack — unchanged"; }
     }
-    out.push({name:d.c, dose, slot:hints.slot||d.slot, food:hints.food||d.food, carrier:d.carrier, st, note});
+    out.push({name, dose,
+      slot: hints.slot || (dict?null:ctxSlot) || (dict&&dict.slot) || ctxSlot || "morning",
+      food: hints.food || (dict?null:ctxFood) || (dict&&dict.food) || ctxFood || "with food",
+      carrier: dict ? dict.carrier : (ctxFood==="empty stomach" ? "as the protocol directs — empty stomach" : "as the protocol directs"),
+      st, note});
   }
   return out;
 }
@@ -1364,20 +1425,34 @@ function classifyText(text){
 }
 
 /* ---- committing imports ---- */
+function mkStackItem(it, src, n){
+  const isRx = /prescription/.test(it.note||"");
+  const why = [{t:"west", e:"imported", x:"Imported from "+src+". Timing follows the protocol's own schedule where stated — confirm details with your practitioner."}];
+  if(isRx) why.unshift({t:"flag", e:"prescription", x:"Prescription medication — dosing and changes belong with your prescriber. Dosely only mirrors the schedule."});
+  return {
+    id:"u-"+slug(it.name)+"-"+Date.now().toString(36)+n,
+    name:it.name, brand:(isRx?"Rx · ":"")+"Imported · "+src, pill:"+", cat:isRx?"Prescriptions":"Imported",
+    slot:it.slot, food:it.food, carrier:it.carrier, dose:it.dose||"see label",
+    flag:isRx?"Prescription":undefined,
+    why
+  };
+}
 function commitSupps(items, src){
   let added=0;
   for(const it of items){
     if(it.st!=="new" || it.skip) continue;
-    STORE.supps.push({
-      id:"u-"+slug(it.name)+"-"+Date.now().toString(36)+added,
-      name:it.name, brand:"Imported · "+src, pill:"+", cat:"Imported",
-      slot:it.slot, food:it.food, carrier:it.carrier, dose:it.dose||"see label",
-      why:[{t:"west", e:"imported", x:"Imported from "+src+". Timing defaults applied from Dosely's knowledge base — tap into Stack to adjust, and confirm doses with your practitioner."}]
-    });
+    STORE.supps.push(mkStackItem(it, src, added));
     added++;
   }
   saveStore(STORE); renderAll();
   return added;
+}
+function commitReplace(items, src){
+  const keep = items.filter(it=>!it.skip);
+  STORE.hideBase = true;
+  STORE.supps = keep.map((it,i)=>mkStackItem(it, src, i));
+  saveStore(STORE); renderAll();
+  return keep.length;
 }
 function commitLabs(items, src){
   const today = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
@@ -1430,10 +1505,12 @@ function reviewSupps(items, src){
       ${it.st==="new" ? `<button class="mi-inc on" data-i="${i}" aria-label="include">✓</button>` : `<span class="mi-tag ${it.st}">${MI_TAG[it.st]}</span>`}
     </div>`).join("");
   const nNew = items.filter(i=>i.st==="new").length;
+  const isProtocol = items.length >= 4;
   p.innerHTML = `${scanHeader(src)}
     <div class="mi-note">${items.length} recognized · checked against your stack. Tap ✓ to exclude an item.</div>
     <div class="mi-list">${rows}</div>
     <button class="btn-primary" id="scan-add">Add ${nNew} to stack</button>
+    ${isProtocol?`<button class="btn-replace" id="scan-replace">Replace my whole protocol with this</button>`:""}
     <button class="btn-ghost" id="scan-reset">Cancel</button>`;
   p.classList.add("show");
   p.querySelectorAll(".mi-inc").forEach(b=>b.addEventListener("click",()=>{
@@ -1446,6 +1523,13 @@ function reviewSupps(items, src){
     const n = commitSupps(items, src);
     toast(n ? n+" added — scheduled into your day" : "Nothing new to add");
     resetScan(); if(n) setTimeout(()=>setTab("today"), 800);
+  });
+  const rep = p.querySelector("#scan-replace");
+  if(rep) rep.addEventListener("click",()=>{
+    if(!confirm("Replace your entire current protocol with these "+items.filter(i=>!i.skip).length+" items? Your existing list will be cleared (undo via ⋯ settings).")) return;
+    const n = commitReplace(items, src);
+    toast("Protocol replaced — "+n+" items scheduled");
+    resetScan(); setTimeout(()=>setTab("today"), 800);
   });
   p.querySelector("#scan-reset").addEventListener("click", resetScan);
 }
@@ -1481,10 +1565,10 @@ async function readPdfText(file){
   pdfjs.GlobalWorkerOptions.workerSrc = "./vendor/pdf.worker.min.mjs";
   const doc = await pdfjs.getDocument({data: await file.arrayBuffer()}).promise;
   let text="";
-  for(let i=1;i<=Math.min(doc.numPages,12);i++){
+  for(let i=1;i<=Math.min(doc.numPages,15);i++){
     const pg = await doc.getPage(i);
     const tc = await pg.getTextContent();
-    text += tc.items.map(it=>it.str).join(" ")+"\n";
+    text += tc.items.map(it=>it.str).join("\n")+"\n";
   }
   return text;
 }
@@ -1583,6 +1667,77 @@ async function lookupUPC(code){
   }
 }
 
+/* ---- reminders ---- */
+const SLOT_TIMES = {morning:[7,0], midday:[12,30], evening:[18,30], night:[21,30]};
+const SLOT_LABEL = {morning:"Morning", midday:"Midday", evening:"Evening", night:"Night"};
+function slotItems(key){ return SUPP.filter(x=>x.slot===key && !RESTING_TODAY.has(x.id) || (STORE.hideBase && x.slot===key)).map(x=>x.name); }
+async function enableAlerts(){
+  const LN = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+  if(LN){
+    try{
+      const perm = await LN.requestPermissions();
+      if(perm.display!=="granted"){ toast("Notifications not permitted in iOS Settings"); return; }
+      try{ await LN.cancel({notifications:[{id:1},{id:2},{id:3},{id:4}]}); }catch(e){}
+      const notifs = Object.keys(SLOT_TIMES).map((k,i)=>({
+        id:i+1, title:"Dosely — "+SLOT_LABEL[k]+" round",
+        body:(slotItems(k).slice(0,6).join(", ")||"Your scheduled items")+(slotItems(k).length>6?"…":""),
+        schedule:{ on:{ hour:SLOT_TIMES[k][0], minute:SLOT_TIMES[k][1] }, repeats:true, allowWhileIdle:true }
+      }));
+      await LN.schedule({notifications:notifs});
+      try{ localStorage.setItem("dosely.remind","native"); }catch(e){}
+      toast("Alerts scheduled — they'll fire even with the app closed");
+    }catch(e){ toast("Couldn't schedule: "+(e.message||e)); }
+    return;
+  }
+  if(!("Notification" in window)){ toast("This browser can't show notifications — use the calendar file"); return; }
+  const perm = await Notification.requestPermission();
+  if(perm!=="granted"){ toast("Notifications blocked — use the calendar file instead"); return; }
+  try{ localStorage.setItem("dosely.remind","web"); }catch(e){}
+  startWebTicker();
+  toast("In-app alerts on — fire while Dosely is open. Calendar file covers the rest.");
+}
+let _tickerOn=false;
+function startWebTicker(){
+  if(_tickerOn) return; _tickerOn=true;
+  setInterval(()=>{
+    const now=new Date(); const hh=now.getHours(), mm=now.getMinutes();
+    for(const k of Object.keys(SLOT_TIMES)){
+      const [H,M]=SLOT_TIMES[k];
+      if(hh===H && mm===M){
+        const stamp="dosely.fired."+k+"."+now.toDateString();
+        try{ if(localStorage.getItem(stamp)) continue; localStorage.setItem(stamp,"1"); }catch(e){}
+        try{ new Notification("Dosely — "+SLOT_LABEL[k]+" round", {body:(slotItems(k).slice(0,6).join(", ")||"Your scheduled items")}); }catch(e){}
+      }
+    }
+  }, 30000);
+}
+try{ if(localStorage.getItem("dosely.remind")==="web" && Notification.permission==="granted") startWebTicker(); }catch(e){}
+function icsEscape(t){ return t.replace(/\\/g,"\\\\").replace(/,/g,"\\,").replace(/;/g,"\\;"); }
+function buildICS(){
+  const now = new Date();
+  const ymd = now.getFullYear().toString()+String(now.getMonth()+1).padStart(2,"0")+String(now.getDate()).padStart(2,"0");
+  let ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Dosely//Reminders//EN\r\n";
+  Object.keys(SLOT_TIMES).forEach((k,i)=>{
+    const [H,M]=SLOT_TIMES[k];
+    const items = slotItems(k);
+    if(!items.length) return;
+    const dt = ymd+"T"+String(H).padStart(2,"0")+String(M).padStart(2,"0")+"00";
+    ics += "BEGIN:VEVENT\r\nUID:dosely-"+k+"-"+ymd+"@dosely\r\nDTSTART:"+dt+"\r\nDURATION:PT15M\r\nRRULE:FREQ=DAILY\r\n";
+    ics += "SUMMARY:"+icsEscape("Dosely — "+SLOT_LABEL[k]+" round")+"\r\n";
+    ics += "DESCRIPTION:"+icsEscape(items.join(", "))+"\r\n";
+    ics += "BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:"+icsEscape(SLOT_LABEL[k]+" supplements")+"\r\nTRIGGER:PT0S\r\nEND:VALARM\r\nEND:VEVENT\r\n";
+  });
+  ics += "END:VCALENDAR\r\n";
+  return ics;
+}
+function downloadICS(){
+  const blob = new Blob([buildICS()], {type:"text/calendar"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "dosely-reminders.ics";
+  document.body.appendChild(a); a.click(); a.remove();
+  toast("Calendar file downloaded — open it to add the 4 daily reminders");
+}
+
 /* ---- settings ---- */
 function openSettings(){ $("#sheet").classList.add("open"); $("#key-input").value = getKey(); }
 function closeSettings(){ $("#sheet").classList.remove("open"); }
@@ -1676,12 +1831,24 @@ $("#man-add").addEventListener("click", ()=>{
   $("#man-name").value=""; $("#man-dose").value=""; hidePanels();
   if(n) setTimeout(()=>setTab("today"), 700);
 });
+[["#pane-scan","auto","scan"],["#pane-labs","labs","labs"]].forEach(([sel,bias,ctx])=>{
+  const el=$(sel);
+  el.addEventListener("dragover", e=>{ e.preventDefault(); el.classList.add("dropping"); });
+  el.addEventListener("dragleave", ()=>el.classList.remove("dropping"));
+  el.addEventListener("drop", e=>{
+    e.preventDefault(); el.classList.remove("dropping");
+    const f=[...(e.dataTransfer.files||[])][0];
+    if(f){ setIO(ctx); handleDoc(f, bias); }
+  });
+});
 $(".appbar-menu").addEventListener("click", openSettings);
 $("#sheet").addEventListener("click", e=>{ if(e.target.id==="sheet") closeSettings(); });
 $("#sheet-close").addEventListener("click", closeSettings);
+$("#alerts-enable").addEventListener("click", enableAlerts);
+$("#ics-download").addEventListener("click", downloadICS);
 $("#key-save").addEventListener("click", ()=>{ try{ localStorage.setItem(KEY_STORE, $("#key-input").value.trim()); }catch(e){} toast("Key saved on this device"); closeSettings(); });
 $("#key-clear").addEventListener("click", ()=>{ try{ localStorage.removeItem(KEY_STORE); }catch(e){} $("#key-input").value=""; toast("Key removed"); });
-$("#data-clear").addEventListener("click", ()=>{ STORE={supps:[],labs:[]}; saveStore(STORE); renderAll(); toast("Imported items cleared"); closeSettings(); });
+$("#data-clear").addEventListener("click", ()=>{ STORE={supps:[],labs:[],hideBase:false}; saveStore(STORE); renderAll(); toast("Imported items cleared — sample protocol restored"); closeSettings(); });
 setTab("today");
 </script>
 </body>
