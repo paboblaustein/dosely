@@ -1433,6 +1433,11 @@ function parseWindow(head){
   if(!end && mLen) end = new Date(start.getFullYear(), start.getMonth(), start.getDate()+(+mLen[1])-1);
   return {start:start.toISOString(), end:end?end.toISOString():null, days:mLen?+mLen[1]:(end?Math.round((end-start)/86400000)+1:null)};
 }
+function describeWindow(w){
+  if(!w || !w.start) return null;
+  const f = d => new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  return f(w.start)+(w.end?" – "+f(w.end):"")+(w.days?" · "+w.days+" days":"");
+}
 const norm = t => (t||"").toLowerCase().replace(/[^a-z0-9\s'-]/g," ").replace(/\s+/g," ").trim();
 const slug = t => norm(t).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 
@@ -1675,8 +1680,10 @@ function reviewSupps(items, src){
     ? `<button class="btn-ghost" id="scan-add">Merge into “${act.name}”</button>
        <button class="btn-replace" id="scan-replace">Replace “${act.name}” with this</button>`
     : (isProtocol ? "" : "");
+  const winDesc = isProtocol ? describeWindow(PENDING_WINDOW) : null;
   p.innerHTML = `${scanHeader(src)}
     <div class="mi-note">${items.length} recognized${act?` · checked against “${act.name}”`:""}. Tap ✓ to exclude an item.</div>
+    ${isProtocol?`<div class="mi-note" style="margin-top:-4px"><b>Calendar window:</b> ${winDesc||"none found in this document — set it on the Plan tab after saving"}</div>`:""}
     <div class="mi-list">${rows}</div>
     ${primary}${secondary}
     <button class="btn-ghost" id="scan-reset">Cancel</button>`;
@@ -1698,16 +1705,18 @@ function reviewSupps(items, src){
     const suggested = src.replace(/\.pdf$/i,"").replace(/[_-]+/g," ").trim().slice(0,40) || "New protocol";
     const name = (prompt("Name this protocol:", suggested)||"").trim();
     if(!name) return;
+    const wd = describeWindow(PENDING_WINDOW);
     const n = commitNewProtocol(items, src, name);
-    toast("“"+name+"” saved & active — "+n+" items");
+    toast("“"+name+"” saved & active — "+n+" items"+(wd?" · "+wd:""));
     resetScan(); setTimeout(()=>setTab("today"), 800);
   });
   const rep = p.querySelector("#scan-replace");
   if(rep) rep.addEventListener("click",()=>{
     const act = activeProtocol();
-    if(!confirm("Replace everything in “"+act.name+"” with these "+items.filter(i=>!i.skip).length+" items?")) return;
+    const wd = describeWindow(PENDING_WINDOW);
+    if(!confirm("Replace everything in “"+act.name+"” with these "+items.filter(i=>!i.skip).length+" items?"+(wd?"\nCalendar window becomes: "+wd:"\n(Calendar window unchanged — none found in this document)"))) return;
     const n = commitReplace(items, src);
-    toast("“"+act.name+"” replaced — "+n+" items");
+    toast("“"+act.name+"” replaced — "+n+" items"+(wd?" · "+wd:""));
     resetScan(); setTimeout(()=>setTab("today"), 800);
   });
   p.querySelector("#scan-reset").addEventListener("click", resetScan);
@@ -2122,7 +2131,9 @@ $("#win-save").addEventListener("click", ()=>{
   pr.lengthDays = isFinite(days)&&days>0 ? days : null;
   pr.endDate = pr.lengthDays ? new Date(y, mo-1, dd+pr.lengthDays-1).toISOString() : null;
   saveStore(STORE); $("#win-panel").hidden = true; renderAll();
-  toast(pr.lengthDays ? "Window set — "+pr.lengthDays+" days" : "Start date set");
+  const wv = protoWindow();
+  const f = d => d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  toast(pr.lengthDays ? "Calendar set: "+f(wv.start)+" – "+f(wv.end)+" · "+pr.lengthDays+" days" : "Start date set — add a length for the full span");
 });
 $("#labs-upload").addEventListener("click", ()=>{ setIO("labs"); docBias="labs"; $("#file-doc").click(); });
 $("#sample-labs").addEventListener("click", async ()=>{
