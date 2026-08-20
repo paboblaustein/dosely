@@ -1,10 +1,10 @@
-# Protocol
+# Dosely
 
 **Supplements, timed right — like an integrative doctor in your pocket.**
 
-Protocol turns a supplement stack into an optimal daily plan — _what_ to take, _when_, with which _carrier_, and _how often_ — by blending Western absorption science, the Traditional Chinese Medicine organ clock, and Ayurvedic guidance, reconciled against your lab work. Then it tracks it.
+Dosely turns a supplement stack into an optimal daily plan — _what_ to take, _when_, with which _carrier_, and _how often_ — by blending Western absorption science, the Traditional Chinese Medicine organ clock, and Ayurvedic guidance, reconciled against your lab work. Then it tracks it.
 
-### 👉 Try the beta: **https://paboblaustein.github.io/protocol/**
+### 👉 Try the beta: **https://paboblaustein.github.io/dosely/**
 
 Open it on your phone — then **Share → Add to Home Screen** to install it like an app (it launches full-screen with its own icon).
 
@@ -31,6 +31,6 @@ Poke around and tell me:
 
 ## ⚠️ Important
 
-Protocol organizes information and cites public sources — it is **not medical advice** and does not diagnose or prescribe. Evidence is labeled _established / emerging / traditional_, and the "functional" lab ranges shown are commonly cited in integrative practice, not universal medical consensus. Always confirm supplement and dose decisions with your own licensed practitioner.
+Dosely organizes information and cites public sources — it is **not medical advice** and does not diagnose or prescribe. Evidence is labeled _established / emerging / traditional_, and the "functional" lab ranges shown are commonly cited in integrative practice, not universal medical consensus. Always confirm supplement and dose decisions with your own licensed practitioner.
 
 _Sample data, for demonstration. A personal work-in-progress — © 2026._
