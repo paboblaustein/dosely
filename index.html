@@ -110,7 +110,7 @@
   .statusbar .dots span{width:6px;height:6px;border-radius:50%;background:var(--ink-faint)}
   .statusbar .batt{width:22px;height:11px;border:1.5px solid var(--ink-faint);border-radius:3px;position:relative}
   .statusbar .batt::after{content:"";position:absolute;left:1.5px;top:1.5px;bottom:1.5px;width:70%;background:var(--brand);border-radius:1px}
-  .appbar{display:flex; align-items:center; gap:10px; padding:6px 18px 12px; border-bottom:1px solid var(--line)}
+  .appbar{display:flex; align-items:center; gap:10px; padding:8px 18px 18px; border-bottom:1px solid var(--line)}
   .appbar-mark{width:27px;height:27px;flex:0 0 auto}
   .appbar-title{flex:1 1 auto; display:flex; flex-direction:column; line-height:1.05; min-width:0}
   .appbar-name{font-family:var(--serif); font-size:20px; font-weight:600; letter-spacing:.3px}
@@ -216,6 +216,25 @@
   .week-legend{display:flex; gap:15px; margin:13px 2px 0; font-size:11.5px; color:var(--ink-soft)}
   .week-legend span{display:inline-flex; align-items:center; gap:6px}
   .week-legend .wg-dot{width:11px;height:11px}
+  .cal-month{margin:14px 0 4px}
+  .cal-mh{font-family:var(--serif); font-size:16px; font-weight:600; margin:0 2px 8px}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
+  .cal-dow{font-family:var(--mono); font-size:9px; color:var(--ink-faint); text-align:center; text-transform:uppercase; letter-spacing:.06em; padding-bottom:2px}
+  .cal-cell{position:relative; aspect-ratio:1; border:none; background:transparent; border-radius:9px; font-family:inherit; font-size:12px; color:var(--ink-soft); display:grid; place-items:center; padding:0}
+  .cal-cell.in{background:var(--surface-2); border:1px solid color-mix(in oklab, var(--line) 70%, transparent); cursor:pointer; color:var(--ink)}
+  .cal-cell.in:hover{box-shadow:var(--shadow)}
+  .cal-cell.blank{visibility:hidden}
+  .cal-cell.out{color:var(--ink-faint); opacity:.45}
+  .cal-cell.done{background:color-mix(in oklab, var(--s-ok) 18%, var(--surface-2)); border-color:color-mix(in oklab, var(--s-ok) 40%, transparent)}
+  .cal-cell.part{background:color-mix(in oklab, var(--s-warn) 14%, var(--surface-2)); border-color:color-mix(in oklab, var(--s-warn) 35%, transparent)}
+  .cal-cell.today{outline:2px solid var(--brand); outline-offset:1px; font-weight:700}
+  .cal-cell.sel{border-color:var(--brand)}
+  .cal-cell.rx::after{content:""; position:absolute; left:26%; right:26%; bottom:4px; height:2.5px; border-radius:2px; background:var(--c-west)}
+  .cal-key{display:inline-block; width:12px; height:12px; border-radius:4px; vertical-align:-2px}
+  .cal-key.done{background:color-mix(in oklab, var(--s-ok) 30%, var(--surface-2)); border:1px solid var(--s-ok)}
+  .cal-key.part{background:color-mix(in oklab, var(--s-warn) 22%, var(--surface-2)); border:1px solid var(--s-warn)}
+  .cal-key.rx{background:var(--surface-2); border-bottom:3px solid var(--c-west); border-radius:3px}
+  .cal-key.todaykey{background:var(--surface-2); outline:2px solid var(--brand); outline-offset:-1px}
   .week-detail{margin:14px 2px 0; font-size:12.5px; color:var(--ink-soft); line-height:1.55; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px 13px}
   .week-detail b{color:var(--ink); font-weight:600}
   .check{width:26px;height:26px;flex:0 0 auto;border-radius:50%;border:1.8px solid var(--line);background:transparent;cursor:pointer;display:grid;place-items:center;padding:0;transition:background .18s, border-color .18s}
@@ -542,6 +561,12 @@
   .ab-h{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--s-warn); margin-bottom:6px}
   .ab-row{font-size:12.5px; color:var(--ink); padding:2px 0}
   .ab-row span{color:var(--ink-soft); font-size:11.5px}
+  .when-chooser{position:absolute; left:14px; right:14px; bottom:calc(84px + env(safe-area-inset-bottom)); z-index:25; background:var(--surface-2); border:1px solid var(--line); border-radius:14px; padding:13px 14px; box-shadow:var(--shadow-lift); animation:fade .2s ease}
+  @media (max-width:600px){ .when-chooser{position:fixed} }
+  .wc-q{font-size:13px; margin-bottom:10px}
+  .wc-btns{display:grid; grid-template-columns:1fr 1fr; gap:9px}
+  .wc-btn{border:1px solid var(--brand); color:var(--brand); background:transparent; border-radius:10px; padding:10px 8px; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer}
+  .wc-btn:hover{background:var(--brand-tint)}
   .empty-state{text-align:center; padding:44px 22px; border:1px dashed var(--line); border-radius:16px; margin-top:16px}
   .empty-state .es-mark svg{width:40px;height:40px;color:var(--c-ayur);margin:0 auto 6px}
   .empty-state h3{font-family:var(--serif); font-size:20px; font-weight:600; margin:6px 0 8px}
@@ -624,12 +649,12 @@
             <!-- WEEK -->
             <section class="pane" id="pane-week">
               <div class="pane-head">
-                <div class="kicker" id="week-range">Mon Jul 14 – Sun Jul 20</div>
-                <h2>Your Week</h2>
-                <p>Daily items run every day. Cyclical ones keep their own rhythm — here's the whole week at a glance.</p>
+                <div class="kicker" id="week-range">Your plan</div>
+                <h2>Your Plan</h2>
+                <p>The whole protocol window, day by day — what's done, what's ahead, and any medication courses.</p>
               </div>
-              <div class="week-scroll"><div class="week-grid" id="week-grid"></div></div>
-              <div class="week-legend"><span><span class="wg-dot on"></span>scheduled</span><span><span class="wg-dot off"></span>rest day</span><span><span class="wg-dot today-key"></span>today</span></div>
+              <div id="cal-months"></div>
+              <div class="week-legend"><span><span class="cal-key done"></span>all taken</span><span><span class="cal-key part"></span>partial</span><span><span class="cal-key rx"></span>Rx course</span><span><span class="cal-key todaykey"></span>today</span></div>
               <div class="week-detail" id="week-detail"></div>
             </section>
 
@@ -764,7 +789,7 @@
             </button>
             <button class="navbtn" data-tab="week">
               <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/><circle cx="15.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg>
-              <span class="nl">Week</span>
+              <span class="nl">Plan</span>
             </button>
             <button class="navbtn" data-tab="stack">
               <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="5" rx="1.5"/><rect x="4" y="10.5" width="16" height="5" rx="1.5"/><rect x="4" y="17" width="16" height="3" rx="1.5"/></svg>
@@ -894,14 +919,6 @@ const SLOT_ICON = {
 ICON["generic"] = _svg(`<rect x="5" y="8.5" width="14" height="7" rx="3.5" transform="rotate(-32 12 12)"/><line x1="10.2" y1="8.2" x2="13.8" y2="15.8"/>`);
 const icon = id => ICON[id] || ((id||"").startsWith("u-") ? ICON.generic : "");
 
-function buildWeek(){
-  const now = new Date();
-  const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay()+6)%7));
-  const days = Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i);
-    return {d:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()], n:d.getDate(), mo:d.toLocaleDateString("en-US",{month:"short"}), today:d.toDateString()===now.toDateString()}; });
-  return { days, rows:[{label:"Daily items", sub:"every day", pill:"daily", pattern:[1,1,1,1,1,1,1]}] };
-}
-const WEEK = buildWeek();
 
 const CTX = {
   today:{eyebrow:"The protocol",
@@ -1040,8 +1057,17 @@ function updateProgress(){
 function bulkTake(ids){
   STORE.taken = STORE.taken||{}; const day = STORE.taken[todayKey()] = STORE.taken[todayKey()]||{};
   const allTaken = ids.length>0 && ids.every(id=>day[id]!=null);
-  ids.forEach(id=>{ if(allTaken) delete day[id]; else if(day[id]==null) day[id]=nowMin(); });
+  let backfilled = 0;
+  ids.forEach(id=>{
+    if(allTaken){ delete day[id]; return; }
+    if(day[id]!=null) return;
+    const item = SUPP.find(x=>x.id===id);
+    const sched = item ? effTime(item) : nowMin();
+    if(nowMin() - sched > 45){ day[id] = sched; backfilled++; }   // catch-up bookkeeping: log at plan time
+    else day[id] = nowMin();
+  });
   runReflow(); renderAll();
+  if(backfilled) toast("Logged "+backfilled+" at their scheduled times");
 }
 function markAll(){
   bulkTake(SUPP.filter(s=>!RESTING_TODAY.has(s.id)).map(s=>s.id));
@@ -1113,41 +1139,92 @@ function renderToday(){
   updateProgress();
 }
 
-function weekRows(){ return WEEK.rows; }
-function dayLoad(i){ return SUPP.filter(x=>!RESTING_TODAY.has(x.id)).length; }
-
-function weekDetail(i){
-  const d = WEEK.days[i];
-  const cyc = weekRows().filter(r=>r.sub!=="every day" && r.pattern[i]).map(r=>r.label);
-  const dd = $("#week-detail");
-  dd.innerHTML = `<b>${d.d}, ${d.mo} ${d.n}</b> — ${dayLoad(i)} item${dayLoad(i)===1?"":"s"} scheduled.`;
+function protoWindow(){
+  const pr = activeProtocol();
+  const start = pr && pr.startDate ? new Date(pr.startDate) : new Date();
+  start.setHours(0,0,0,0);
+  let end = pr && pr.endDate ? new Date(pr.endDate) : null;
+  if(!end && pr && pr.lengthDays) end = new Date(start.getTime()+(pr.lengthDays-1)*86400000);
+  if(!end){ end = new Date(start.getTime()+27*86400000); }
+  end.setHours(0,0,0,0);
+  return {start, end, days: Math.round((end-start)/86400000)+1};
 }
-
+function dayNumber(d, w){ return Math.round((d - w.start)/86400000)+1; }
+function rxCoursesFor(d, w){
+  const n = dayNumber(d, w);
+  return SUPP.filter(x=>x.courseDays && n>=1 && n<=x.courseDays)
+             .map(x=>x.name).filter((v,i,a)=>a.indexOf(v)===i);
+}
+function adherence(d){
+  const tk = (STORE.taken||{})[d.toDateString()];
+  const total = SUPP.length;
+  if(!tk || !total) return null;
+  const n = Object.keys(tk).length;
+  return n>=total ? "done" : (n>0 ? "part" : null);
+}
 function renderWeek(){
-  const host = $("#week-grid");
-  const days = WEEK.days;
+  const host = $("#cal-months"); if(!host) return;
+  const w = protoWindow();
+  const pr = activeProtocol();
   const wr = $("#week-range");
-  if(wr) wr.textContent = days[0].d+" "+days[0].mo+" "+days[0].n+" – "+days[6].d+" "+days[6].mo+" "+days[6].n;
-  let html = `<div class="wg-cell wg-corner"></div>`;
-  days.forEach((d,i)=>{
-    html += `<div class="wg-cell wg-day ${d.today?'today-col wg-today':''}" data-idx="${i}">
-      <span class="wg-dow">${d.d}</span><span class="wg-date">${d.n}</span><span class="wg-cnt">${dayLoad(i)}</span></div>`;
-  });
-  weekRows().forEach(r=>{
-    html += `<div class="wg-cell wg-label"><span class="wg-pill">${icon(r.pill)||r.pill}</span><span class="wg-lname">${r.label}<em>${r.sub}</em></span></div>`;
-    r.pattern.forEach((on,i)=>{
-      html += `<div class="wg-cell wg-dotcell ${days[i].today?'today-col':''}" data-idx="${i}"><span class="wg-dot ${on?'on':'off'}"></span></div>`;
-    });
-  });
-  host.innerHTML = html;
-  host.querySelectorAll("[data-idx]").forEach(c=>c.addEventListener("click", ()=>{
-    const i = +c.dataset.idx;
-    weekDetail(i);
-    host.querySelectorAll(".wg-day").forEach(x=>x.classList.toggle("sel", +x.dataset.idx===i));
+  const fmtD = d => d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  const today = new Date(); today.setHours(0,0,0,0);
+  if(wr){
+    const dn = dayNumber(today, w);
+    wr.textContent = pr
+      ? fmtD(w.start)+" – "+fmtD(w.end)+(w.days?" · "+w.days+" days":"")+(dn>=1&&dn<=w.days?" · day "+dn:"")
+      : "No protocol yet";
+  }
+  host.innerHTML = "";
+  if(!SUPP.length){ host.innerHTML = `<div class="io-hint" style="margin-top:8px">Import a protocol and its full calendar appears here.</div>`; return; }
+  // months from window start through window end (cap 6)
+  let m = new Date(w.start.getFullYear(), w.start.getMonth(), 1);
+  const lastM = new Date(w.end.getFullYear(), w.end.getMonth(), 1);
+  let guard = 0;
+  while(m <= lastM && guard++ < 6){
+    const mEl = el("div","cal-month");
+    let html = `<div class="cal-mh">${m.toLocaleDateString("en-US",{month:"long",year:"numeric"})}</div>
+      <div class="cal-grid">`+["S","M","T","W","T","F","S"].map(d=>`<span class="cal-dow">${d}</span>`).join("");
+    const firstDow = m.getDay();
+    for(let b=0;b<firstDow;b++) html += `<span class="cal-cell blank"></span>`;
+    const daysInMonth = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
+    for(let dd=1; dd<=daysInMonth; dd++){
+      const d = new Date(m.getFullYear(), m.getMonth(), dd);
+      const inWin = d>=w.start && d<=w.end;
+      const isToday = d.getTime()===today.getTime();
+      const past = d<today;
+      const adh = inWin && past ? adherence(d) : null;
+      const rx = inWin && rxCoursesFor(d, w).length;
+      const cls = ["cal-cell", inWin?"in":"out", isToday?"today":"", adh||"", rx?"rx":""].filter(Boolean).join(" ");
+      html += `<button class="${cls}" data-date="${d.toISOString()}"><span>${dd}</span></button>`;
+    }
+    html += `</div>`;
+    mEl.innerHTML = html;
+    host.appendChild(mEl);
+    m = new Date(m.getFullYear(), m.getMonth()+1, 1);
+  }
+  if(new Date(w.end.getFullYear(), w.end.getMonth(), 1) > new Date(w.start.getFullYear(), w.start.getMonth()+5, 1)){
+    host.appendChild(el("div","io-hint","…continues through "+fmtD(w.end)));
+  }
+  host.querySelectorAll(".cal-cell.in").forEach(c=>c.addEventListener("click", ()=>{
+    const d = new Date(c.dataset.date);
+    const dn = dayNumber(d, w);
+    const adh = adherence(d);
+    const tk = (STORE.taken||{})[d.toDateString()];
+    const courses = rxCoursesFor(d, w);
+    const bits = [
+      d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}),
+      "day "+dn+(w.days?" of "+w.days:""),
+      SUPP.length+" items",
+      (tk?Object.keys(tk).length+" taken":(d<today?"none logged":null)),
+      (courses.length?courses.join(" & ")+" course day":null)
+    ].filter(Boolean);
+    $("#week-detail").innerHTML = "<b>"+bits[0]+"</b> — "+bits.slice(1).join(" · ");
+    host.querySelectorAll(".cal-cell.sel").forEach(x=>x.classList.remove("sel"));
+    c.classList.add("sel");
   }));
-  weekDetail(days.findIndex(d=>d.today));
+  // scroll current month into view on first render of the pane? keep simple.
 }
-
 function renderCumulative(){
   const host = $("#cumulative");
   host.innerHTML = `<h3>Cumulative dose</h3><p class="csub">Meters build as Dosely learns the labeled nutrient amounts in your protocol — coming as imports get richer.</p>`;
@@ -1317,6 +1394,20 @@ const LAB_DICT = [
 
 const MI_MARK = {new:"+", review:"✎", have:"✓", low:"↓", high:"↑", warn:"•", ok:"✓"};
 const MI_TAG  = {new:"new", review:"review", have:"in stack"};
+let PENDING_WINDOW = null;
+const MONTHS = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+function parseWindow(head){
+  const toks = [...head.matchAll(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:,\s*(\d{4}))?/gi)];
+  const mLen = head.match(/(\d{1,3})\s*days?\b/i);
+  if(!toks.length) return mLen ? {days:+mLen[1]} : null;
+  const year = (toks.find(t=>t[3])||[])[3] || new Date().getFullYear();
+  const mk = t => new Date(+(t[3]||year), MONTHS.indexOf(t[1].toLowerCase()), +t[2]);
+  const dates = toks.map(mk).sort((a,b)=>a-b);
+  const start = dates[0];
+  let end = dates.length>1 && dates[dates.length-1]>start ? dates[dates.length-1] : null;
+  if(!end && mLen) end = new Date(start.getTime()+(+mLen[1]-1)*86400000);
+  return {start:start.toISOString(), end:end?end.toISOString():null, days:mLen?+mLen[1]:(end?Math.round((end-start)/86400000)+1:null)};
+}
 const norm = t => (t||"").toLowerCase().replace(/[^a-z0-9\s'-]/g," ").replace(/\s+/g," ").trim();
 const slug = t => norm(t).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 
@@ -1362,8 +1453,11 @@ function parseSuppText(text){
   const lines = text.split(/\n+/).flatMap(l=>l.split(/[;•]+|,(?![0-9])| and /i)).map(t=>t.trim()).filter(t=>t.length>1);
   const out=[]; const seen=new Set();
   let ctxSlot=null, ctxFood=null, ctxTime=null;
+  const courseMap = {};
   for(let i=0;i<lines.length;i++){
     const ln = lines[i];
+    const cm = ln.match(RX_RE) && ln.match(/\bDAY\s+\d+\s+OF\s+(\d+)/i);
+    if(cm){ courseMap[norm(ln.match(RX_RE)[0])] = +cm[1]; }
     const tm = ln.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
     if(tm){ let h=(+tm[1])%12; if(/pm/i.test(tm[3])) h+=12; ctxSlot=hourToSlot(h); ctxTime=h*60+(+tm[2]); ctxFood=null; }
     if(/empty stomach|fasted/i.test(ln)) ctxFood="empty stomach";
@@ -1410,6 +1504,7 @@ function parseSuppText(text){
       carrier: dict ? dict.carrier : (ctxFood==="empty stomach" ? "as the protocol directs — empty stomach" : "as the protocol directs"),
       st, note});
   }
+  out.forEach(it=>{ const m = it.name.match(RX_RE); if(m && courseMap[norm(m[0])]) it.courseDays = courseMap[norm(m[0])]; });
   return out;
 }
 function statusFor(v, d){
@@ -1456,6 +1551,7 @@ function mkStackItem(it, src, n){
     name:it.name, brand:(isRx?"Rx · ":"")+"Imported · "+src, pill:"+", cat:isRx?"Prescriptions":"Imported",
     slot:it.slot, time:(it.time!=null?it.time:(SLOT_DEFAULT_MIN[it.slot]!=null?SLOT_DEFAULT_MIN[it.slot]:420)), food:it.food, carrier:it.carrier, dose:it.dose||"see label",
     flag:isRx?"Prescription":undefined,
+    courseDays: it.courseDays,
     why
   };
 }
@@ -1473,13 +1569,17 @@ function commitSupps(items, src){
 function commitReplace(items, src){
   const pr = ensureActive();
   const keep = items.filter(it=>!it.skip);
+  const w = PENDING_WINDOW || {}; PENDING_WINDOW = null;
+  if(w.start){ pr.startDate=w.start; pr.endDate=w.end||null; pr.lengthDays=w.days||null; }
   pr.items = keep.map((it,i)=>mkStackItem(it, src, i));
   saveStore(STORE); renderAll();
   return keep.length;
 }
 function commitNewProtocol(items, src, name){
   const keep = items.filter(it=>!it.skip);
-  const pr = {id:"p-"+Date.now().toString(36), name:name||src||"New protocol", items:keep.map((it,i)=>mkStackItem(it, src, i)), createdAt:new Date().toISOString()};
+  const w = PENDING_WINDOW || {}; PENDING_WINDOW = null;
+  const pr = {id:"p-"+Date.now().toString(36), name:name||src||"New protocol", items:keep.map((it,i)=>mkStackItem(it, src, i)), createdAt:new Date().toISOString(),
+              startDate:w.start||new Date().toISOString(), endDate:w.end||null, lengthDays:w.days||null};
   STORE.protocols.push(pr); STORE.activeProtocolId = pr.id;
   saveStore(STORE); renderAll();
   return keep.length;
@@ -1636,6 +1736,7 @@ async function handleDoc(file, bias){
         return showMessage(`${scanHeader(file.name)}<div class="mi-note">This PDF has no text layer (it's a scan). Add an Anthropic API key in ⋯ settings and Dosely can read it visually — or paste the contents as a note.</div>`);
       }
       let dayNote = "";
+      PENDING_WINDOW = parseWindow(text.slice(0, 1500));
       const nextDay = text.search(/\bDAY\s+(?:[2-9]|\d{2,})\b/i);
       if(nextDay > 200){ text = text.slice(0, nextDay); dayNote = " · multi-day plan — imported Day 1's schedule"; }
       const c = classifyText(text);
@@ -1911,15 +2012,36 @@ function runReflow(){
   STORE.shiftInfo = STORE.shiftInfo||{}; STORE.shiftInfo[todayKey()] = info;
   saveStore(STORE);
 }
+function recordTaken(id, minutes){
+  STORE.taken = STORE.taken||{}; const day = STORE.taken[todayKey()] = STORE.taken[todayKey()]||{};
+  day[id] = minutes;
+  runReflow(); renderAll();
+  const moves = Object.values(shiftInfo());
+  if(moves.length) toast(moves.length+" item"+(moves.length>1?"s":"")+" re-timed around what you took");
+}
 function toggleTaken(id){
   STORE.taken = STORE.taken||{}; const day = STORE.taken[todayKey()] = STORE.taken[todayKey()]||{};
   const was = day[id]!=null;
-  if(was) delete day[id]; else day[id] = nowMin();
-  runReflow();
-  renderAll();
-  const moves = Object.values(shiftInfo());
-  if(!was && moves.length) toast(moves.length+" item"+(moves.length>1?"s":"")+" re-timed around what you took");
-  return !was;
+  if(was){ delete day[id]; runReflow(); renderAll(); return false; }
+  const item = SUPP.find(x=>x.id===id);
+  const sched = item ? effTime(item) : nowMin();
+  const late = nowMin() - sched;
+  if(late > 45){ showWhenChooser(id, sched); return null; }   // ask: on time or just now?
+  recordTaken(id, nowMin());
+  return true;
+}
+function showWhenChooser(id, sched){
+  const item = SUPP.find(x=>x.id===id);
+  const old = $("#when-chooser"); if(old) old.remove();
+  const c = el("div","when-chooser"); c.id="when-chooser";
+  c.innerHTML = `<div class="wc-q">When did you take <b>${item?item.name:"it"}</b>?</div>
+    <div class="wc-btns">
+      <button class="wc-btn" data-when="${sched}">On time · ${fmtTime(sched)}</button>
+      <button class="wc-btn" data-when="${nowMin()}">Just now · ${fmtTime(nowMin())}</button>
+    </div>`;
+  document.querySelector(".bezel").appendChild(c);
+  c.querySelectorAll(".wc-btn").forEach(b=>b.addEventListener("click", ()=>{ c.remove(); recordTaken(id, +b.dataset.when); }));
+  setTimeout(()=>{ const cc=$("#when-chooser"); if(cc) cc.remove(); }, 12000);
 }
 function setItemTimeShiftSafe(){}
 
