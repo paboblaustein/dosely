@@ -138,6 +138,20 @@
   .today-progress .ptext{font-family:var(--mono); font-size:11px; color:var(--ink-faint); white-space:nowrap}
   .mark-all-btn{border:1px solid var(--brand); color:var(--brand); background:transparent; border-radius:999px; font-family:inherit; font-size:11.5px; font-weight:600; padding:5px 14px; cursor:pointer; transition:background .18s}
   .mark-all-btn:hover{background:var(--brand-tint)}
+  .day-nav{display:flex; align-items:center; gap:7px; margin:12px 0 0}
+  .day-arrow{width:36px; height:36px; flex:none; border-radius:11px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink-soft); font-size:19px; line-height:1; cursor:pointer; font-family:inherit; padding:0 0 2px}
+  .day-arrow:active{transform:translateY(1px)}
+  .day-label{flex:1; min-width:0; text-align:center; border:0; background:transparent; font-family:inherit; color:var(--ink); font-size:14.5px; font-weight:600; letter-spacing:.01em; cursor:pointer; padding:2px 0}
+  .day-label .dl-sub{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-weight:400; margin-top:2px}
+  .day-banner{display:flex; align-items:center; gap:10px; border:1px solid var(--line); background:var(--surface-2); border-radius:12px; padding:10px 13px; margin:14px 0 4px}
+  .day-banner p{flex:1; font-size:12px; color:var(--ink-soft); line-height:1.45; margin:0}
+  .day-banner .db-back{flex:none; border:1px solid var(--brand); color:var(--brand); background:transparent; border-radius:999px; font-family:inherit; font-size:11.5px; font-weight:600; padding:5px 12px; cursor:pointer}
+  .future-view .check{opacity:.35}
+  .wa-row{display:flex; gap:8px; align-items:stretch}
+  .io-panel .wa-row .wa-btn{width:auto; flex:none; margin-top:0; padding:9px 13px; white-space:nowrap; font-size:12px}
+  .win-adjust{margin-top:12px; border-top:1px dashed var(--line); padding-top:4px}
+  .wd-acts{display:block; margin-top:7px}
+  .wd-acts .wd-open{border:none; background:none; font-family:inherit; font-size:12px; font-weight:600; color:var(--brand); cursor:pointer; padding:0; margin:0 14px 0 0; text-decoration:underline; text-underline-offset:3px}
 
   /* ---- day arc / today ---- */
   .arc{position:relative; height:120px; margin:8px 2px 6px}
@@ -642,6 +656,11 @@
             <section class="pane active" id="pane-today">
               <div class="pane-head">
                 <div class="kicker" id="today-kicker">Your protocol</div>
+                <div class="day-nav">
+                  <button class="day-arrow" id="day-prev" aria-label="Previous day">‹</button>
+                  <button class="day-label" id="day-label">Today</button>
+                  <button class="day-arrow" id="day-next" aria-label="Next day">›</button>
+                </div>
                 <div class="today-progress" id="today-progress">
                   <div class="pbar"><i></i></div>
                   <div class="tp-row"><span class="ptext">0 of 10 taken</span><button class="mark-all-btn" id="mark-all">Take all</button></div>
@@ -657,13 +676,31 @@
                 <h2>Your Plan</h2>
                 <p>The whole protocol window, day by day — what's done, what's ahead, and any medication courses.</p>
               </div>
+              <button class="sample-link" id="realign-link">Fell behind? Realign the plan ↷</button>
               <button class="sample-link" id="win-edit-link">Edit protocol window ✎</button>
+              <div class="io-panel" id="realign-panel" hidden>
+                <label class="io-label" for="realign-day">Today should be day…</label>
+                <div class="wa-row">
+                  <input type="text" id="realign-day" inputmode="numeric" placeholder="e.g. 6">
+                  <button class="btn-primary wa-btn" id="realign-save">Realign</button>
+                </div>
+                <p class="io-hint">Skipped some days? Tell Dosely where you really are and the whole plan slides so that day lands on today — same length, nothing dropped. Or tap any day on the calendar below and “Resume here today”.</p>
+              </div>
               <div class="io-panel" id="win-panel" hidden>
                 <div class="io-2col">
                   <div><label class="io-label" for="win-start">Start date</label><input type="date" id="win-start"></div>
                   <div><label class="io-label" for="win-days">Length (days)</label><input type="text" id="win-days" inputmode="numeric" placeholder="90"></div>
                 </div>
                 <button class="btn-primary" id="win-save">Save window</button>
+                <div class="win-adjust">
+                  <label class="io-label" for="win-shift">Nudge by days</label>
+                  <div class="wa-row">
+                    <input type="text" id="win-shift" inputmode="numeric" placeholder="e.g. 7 or -3">
+                    <button class="btn-ghost wa-btn" id="win-extend">Extend end</button>
+                    <button class="btn-ghost wa-btn" id="win-shift-btn">Shift both</button>
+                  </div>
+                  <p class="io-hint">Extend adds days to the end, keeping your start. Shift moves start and end together.</p>
+                </div>
               </div>
               <div id="cal-months"></div>
               <div class="week-legend"><span><span class="cal-key done"></span>all taken</span><span><span class="cal-key part"></span>partial</span><span><span class="cal-key rx"></span>Rx course</span><span><span class="cal-key todaykey"></span>today</span></div>
@@ -1057,7 +1094,7 @@ function updateProgress(){
   if(bar) bar.style.width = (total? taken/total*100 : 0)+'%';
   if(txt) txt.textContent = `${taken} of ${total} taken`;
   const btn = document.querySelector('#mark-all');
-  if(btn) btn.textContent = (taken===total && total>0) ? "Clear all" : "Take all";
+  if(btn){ btn.textContent = (taken===total && total>0) ? "Clear all" : "Take all"; btn.style.display = viewIsFuture() ? "none" : ""; }
   document.querySelectorAll('#pane-today .slot[data-round]').forEach(w=>{
     const all = w.querySelectorAll('.dose').length;
     const t = w.querySelectorAll('.dose.taken').length;
@@ -1067,7 +1104,8 @@ function updateProgress(){
 }
 
 function bulkTake(ids){
-  STORE.taken = STORE.taken||{}; const day = STORE.taken[todayKey()] = STORE.taken[todayKey()]||{};
+  if(viewIsFuture()){ toast("That day hasn't happened yet"); return; }
+  STORE.taken = STORE.taken||{}; const day = STORE.taken[viewKey()] = STORE.taken[viewKey()]||{};
   const allTaken = ids.length>0 && ids.every(id=>day[id]!=null);
   let backfilled = 0;
   ids.forEach(id=>{
@@ -1075,11 +1113,14 @@ function bulkTake(ids){
     if(day[id]!=null) return;
     const item = SUPP.find(x=>x.id===id);
     const sched = item ? effTime(item) : nowMin();
-    if(nowMin() - sched > 45){ day[id] = sched; backfilled++; }   // catch-up bookkeeping: log at plan time
+    if(!viewingToday()){ day[id] = sched; backfilled++; }              // other days: always log at plan time
+    else if(nowMin() - sched > 45){ day[id] = sched; backfilled++; }   // catch-up bookkeeping: log at plan time
     else day[id] = nowMin();
   });
-  runReflow(); renderAll();
-  if(backfilled) toast("Logged "+backfilled+" at their scheduled times");
+  if(viewingToday()) runReflow(); else saveStore(STORE);
+  renderAll();
+  if(backfilled) toast(viewingToday() ? "Logged "+backfilled+" at their scheduled times"
+    : "Logged "+backfilled+" for "+VIEW_DATE.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}));
 }
 function markAll(){
   bulkTake(SUPP.filter(s=>!RESTING_TODAY.has(s.id)).map(s=>s.id));
@@ -1098,8 +1139,14 @@ function dayRounds(){
 function renderToday(){
   const host = $("#today-slots"); host.innerHTML="";
   const act = activeProtocol();
+  const w = protoWindow();
+  const dn = dayNumber(VIEW_DATE, w);
   const tk = $("#today-kicker");
-  if(tk) tk.textContent = (act?act.name:"No protocol yet")+" · "+new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+  if(tk) tk.textContent = (act?act.name:"No protocol yet")+(act && !w.unset && dn>=1 && dn<=w.days ? " · day "+dn+" of "+w.days : "");
+  const dl = $("#day-label");
+  if(dl) dl.innerHTML = VIEW_DATE.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})+`<span class="dl-sub">${relDayLabel(VIEW_DATE)}</span>`;
+  const dnav = document.querySelector("#pane-today .day-nav"); if(dnav) dnav.style.display = SUPP.length?"":"none";
+  $("#pane-today").classList.toggle("future-view", viewIsFuture());
   const tp = $("#today-progress"); if(tp) tp.style.display = SUPP.length?"":"none";
   if(!SUPP.length){
     const eb = el("div","empty-state");
@@ -1110,6 +1157,16 @@ function renderToday(){
     host.appendChild(eb);
     eb.querySelector("#es-import").addEventListener("click", ()=>setTab("scan"));
     updateProgress(); return;
+  }
+  if(!viewingToday()){
+    const b = el("div","day-banner");
+    const dstr = VIEW_DATE.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+    b.innerHTML = (viewIsFuture()
+      ? `<p>A look ahead at <b>${dstr}</b> — items check off only once the day arrives.</p>`
+      : `<p>Filling in <b>${dstr}</b> — checks save to that day at their scheduled times.</p>`)
+      + `<button class="db-back">Back to today</button>`;
+    b.querySelector(".db-back").addEventListener("click", ()=>setViewDate(new Date()));
+    host.appendChild(b);
   }
   const info = shiftInfo(); const moves = Object.keys(info);
   if(moves.length){
@@ -1190,6 +1247,8 @@ function renderWeek(){
   }
   const we = $("#win-edit-link");
   if(we) we.style.display = (pr && !w.unset) ? "" : "none";
+  const rl = $("#realign-link");
+  if(rl) rl.style.display = (pr && !w.unset) ? "" : "none";
   const oldBanner = $("#win-banner"); if(oldBanner) oldBanner.remove();
   if(pr && w.unset){
     const b = el("div","win-banner"); b.id="win-banner";
@@ -1244,7 +1303,12 @@ function renderWeek(){
       (tk?Object.keys(tk).length+" taken":(d<today?"none logged":null)),
       (courses.length?courses.join(" & ")+" course day":null)
     ].filter(Boolean);
-    $("#week-detail").innerHTML = "<b>"+bits[0]+"</b> — "+bits.slice(1).join(" · ");
+    const curDN = dayNumber(today, w);
+    const acts = [`<button class="wd-open" id="wd-open">${d<today ? "Open this day →" : (d.getTime()===today.getTime() ? "Open today →" : "Preview →")}</button>`];
+    if(!w.unset && dn!==curDN) acts.push(`<button class="wd-open" id="wd-resume">${d<today ? "Resume here today ↷" : "Make this today ↷"}</button>`);
+    $("#week-detail").innerHTML = "<b>"+bits[0]+"</b> — "+bits.slice(1).join(" · ")+`<span class="wd-acts">${acts.join("")}</span>`;
+    $("#wd-open").addEventListener("click", ()=>{ setViewDate(d); setTab("today"); });
+    const wres = $("#wd-resume"); if(wres) wres.addEventListener("click", ()=>realignToDay(dn));
     host.querySelectorAll(".cal-cell.sel").forEach(x=>x.classList.remove("sel"));
     c.classList.add("sel");
   }));
@@ -1999,9 +2063,21 @@ function setItemTime(id, minutes){
 }
 function todayKey(){ return new Date().toDateString(); }
 function nowMin(){ if(window.__testNow!=null) return window.__testNow; const d=new Date(); return d.getHours()*60+d.getMinutes(); }
-function takenMap(){ return (STORE.taken && STORE.taken[todayKey()]) || {}; }
-function shiftMap(){ return (STORE.shifts && STORE.shifts[todayKey()]) || {}; }
-function shiftInfo(){ return (STORE.shiftInfo && STORE.shiftInfo[todayKey()]) || {}; }
+/* ---- viewed day: the Today pane can page to any date ---- */
+let VIEW_DATE = (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
+function viewKey(){ return VIEW_DATE.toDateString(); }
+function viewingToday(){ return viewKey() === todayKey(); }
+function viewIsFuture(){ const t=new Date(); t.setHours(0,0,0,0); return VIEW_DATE.getTime() > t.getTime(); }
+function setViewDate(d){ VIEW_DATE = new Date(d.getFullYear(), d.getMonth(), d.getDate()); renderAll(); }
+function stepViewDate(n){ setViewDate(new Date(VIEW_DATE.getFullYear(), VIEW_DATE.getMonth(), VIEW_DATE.getDate()+n)); }
+function relDayLabel(d){
+  const t = new Date(); t.setHours(0,0,0,0);
+  const diff = Math.round((d - t)/86400000);
+  return diff===0?"today":diff===-1?"yesterday":diff===1?"tomorrow":diff<0?(-diff)+" days ago":"in "+diff+" days";
+}
+function takenMap(){ return (STORE.taken && STORE.taken[viewKey()]) || {}; }
+function shiftMap(){ return viewingToday() ? ((STORE.shifts && STORE.shifts[todayKey()]) || {}) : {}; }
+function shiftInfo(){ return viewingToday() ? ((STORE.shiftInfo && STORE.shiftInfo[todayKey()]) || {}) : {}; }
 function effTime(x){ const sh=shiftMap(); return sh[x.id]!=null ? sh[x.id] : x.time; }
 
 /* ---- live constraint rules ---- */
@@ -2014,7 +2090,7 @@ function mineralOf(x){ const m=x.name.match(MINERAL_RE); return m ? m[1].toLower
 
 /* Recompute today's shifts purely from what has actually been taken. Idempotent. */
 function runReflow(){
-  const tk = takenMap();
+  const tk = (STORE.taken && STORE.taken[todayKey()]) || {};   // reflow always works on the real today
   const due = SUPP.filter(x=>!RESTING_TODAY.has(x.id));
   const takenItems = due.filter(x=>tk[x.id]!=null).map(x=>({x, at:tk[x.id]}));
   const shifts={}, info={};
@@ -2054,11 +2130,13 @@ function recordTaken(id, minutes){
   if(moves.length) toast(moves.length+" item"+(moves.length>1?"s":"")+" re-timed around what you took");
 }
 function toggleTaken(id){
-  STORE.taken = STORE.taken||{}; const day = STORE.taken[todayKey()] = STORE.taken[todayKey()]||{};
+  if(viewIsFuture()){ toast("That day hasn't happened yet — check it off when it does"); return null; }
+  STORE.taken = STORE.taken||{}; const day = STORE.taken[viewKey()] = STORE.taken[viewKey()]||{};
   const was = day[id]!=null;
-  if(was){ delete day[id]; runReflow(); renderAll(); return false; }
+  if(was){ delete day[id]; if(viewingToday()) runReflow(); else saveStore(STORE); renderAll(); return false; }
   const item = SUPP.find(x=>x.id===id);
   const sched = item ? effTime(item) : nowMin();
+  if(!viewingToday()){ day[id] = sched; saveStore(STORE); renderAll(); return true; }   // back-fill at plan time, no reshuffle
   const late = nowMin() - sched;
   if(late > 45){ showWhenChooser(id, sched); return null; }   // ask: on time or just now?
   recordTaken(id, nowMin());
@@ -2084,6 +2162,9 @@ function renderAll(){ rebuildMerged(); renderToday(); renderWeek(); renderStack(
 /* ---- init ---- */
 renderToday(); renderWeek(); renderStack(); renderLabs();
 $("#mark-all").addEventListener("click", markAll);
+$("#day-prev").addEventListener("click", ()=>stepViewDate(-1));
+$("#day-next").addEventListener("click", ()=>stepViewDate(1));
+$("#day-label").addEventListener("click", ()=>{ if(!viewingToday()) setViewDate(new Date()); });
 $$(".navbtn").forEach(b=>b.addEventListener("click", ()=>setTab(b.dataset.tab)));
 let docBias = null;
 const togglePanel = id => { const el=$("#"+id); const was=el.hidden; hidePanels(); $("#scan-parsed").classList.remove("show"); $("#scan-idle").style.display="block"; el.hidden=!was; };
@@ -2119,8 +2200,63 @@ function openWinPanel(){
 }
 $("#win-edit-link").addEventListener("click", ()=>{
   const panel = $("#win-panel");
+  $("#realign-panel").hidden = true;
   if(panel.hidden) openWinPanel(); else panel.hidden = true;
 });
+/* ---- realign: slide the whole plan so a given plan-day lands on today ---- */
+function realignToDay(target){
+  const pr = activeProtocol(); if(!pr) return;
+  const w = protoWindow();
+  if(w.unset){ toast("Set the plan window first"); openWinPanel(); return; }
+  if(!isFinite(target)||target<1||target>w.days){ toast("Pick a day between 1 and "+w.days); return; }
+  const t0 = new Date(); t0.setHours(0,0,0,0);
+  const shift = dayNumber(t0, w) - target;
+  if(!shift){ toast("You're already on day "+target); return; }
+  const s = new Date(w.start.getFullYear(), w.start.getMonth(), w.start.getDate()+shift);
+  pr.startDate = s.toISOString();
+  pr.lengthDays = w.days;
+  pr.endDate = new Date(s.getFullYear(), s.getMonth(), s.getDate()+w.days-1).toISOString();
+  saveStore(STORE);
+  $("#week-detail").innerHTML = "";
+  setViewDate(new Date());   // land on the realigned today
+  const wv = protoWindow(), f = d => d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  toast("Today is now day "+target+" — plan runs "+f(wv.start)+" – "+f(wv.end));
+}
+function adjustWindow(mode){
+  const pr = activeProtocol(); if(!pr) return;
+  const w = protoWindow();
+  if(w.unset){ toast("Set a start date and length first"); return; }
+  const n = parseInt($("#win-shift").value,10);
+  if(!isFinite(n)||n===0){ toast("How many days? e.g. 7"); $("#win-shift").focus(); return; }
+  let s = w.start, len = w.days;
+  if(mode==="shift") s = new Date(s.getFullYear(), s.getMonth(), s.getDate()+n);
+  else len += n;
+  if(len<1){ toast("That would end the plan before it starts"); return; }
+  pr.startDate = s.toISOString();
+  pr.lengthDays = len;
+  pr.endDate = new Date(s.getFullYear(), s.getMonth(), s.getDate()+len-1).toISOString();
+  saveStore(STORE); $("#week-detail").innerHTML = ""; renderAll();
+  $("#win-shift").value = "";
+  $("#win-start").value = s.getFullYear()+"-"+String(s.getMonth()+1).padStart(2,"0")+"-"+String(s.getDate()).padStart(2,"0");
+  $("#win-days").value = len;
+  const wv = protoWindow(), f = d => d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  toast((mode==="shift" ? "Plan shifted: " : "End extended: ")+f(wv.start)+" – "+f(wv.end)+" · "+len+" days");
+}
+$("#win-extend").addEventListener("click", ()=>adjustWindow("extend"));
+$("#win-shift-btn").addEventListener("click", ()=>adjustWindow("shift"));
+$("#realign-link").addEventListener("click", ()=>{
+  const p = $("#realign-panel"); const was = p.hidden;
+  $("#win-panel").hidden = true;
+  p.hidden = !was;
+  if(was){
+    const w = protoWindow(); const t0 = new Date(); t0.setHours(0,0,0,0);
+    const cur = dayNumber(t0, w);
+    $("#realign-day").value = (!w.unset && cur>=1 && cur<=w.days) ? cur : "";
+    p.scrollIntoView({block:"center", behavior:"smooth"});
+    $("#realign-day").focus();
+  }
+});
+$("#realign-save").addEventListener("click", ()=>{ realignToDay(parseInt($("#realign-day").value,10)); $("#realign-panel").hidden = true; });
 $("#win-save").addEventListener("click", ()=>{
   const pr = activeProtocol(); if(!pr) return;
   const [y,mo,dd] = ($("#win-start").value||"").split("-").map(Number);
